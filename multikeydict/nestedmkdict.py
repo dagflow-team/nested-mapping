@@ -546,6 +546,12 @@ class NestedMKDict(ClassWrapper):
         for _, v in self.walkitems(*args, **kwargs):
             yield v
 
+    def len_recursive(self, *args, **kwargs) -> int:
+        return sum(1 for _ in self.walkitems(*args, **kwargs))
+
+    def depth(self):
+        return max(len(k) for k, _ in self.walkitems())
+
     def visit(self, visitor, parentkey=()) -> NestedMKDictVisitor:
         visitor = MakeNestedMKDictVisitor(visitor)
 
