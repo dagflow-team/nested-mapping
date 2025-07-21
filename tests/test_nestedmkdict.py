@@ -9,6 +9,7 @@ def test_nestedmkdict_01():
 
     assert not dw
     assert len(dw) == 0
+    assert dw.len_recursive() == 0
 
 
 def test_nestedmkdict_02():
@@ -16,6 +17,7 @@ def test_nestedmkdict_02():
 
     assert dw
     assert len(dw) == 1
+    assert dw.len_recursive() == 1
 
 
 def test_nestedmkdict_03():
@@ -29,6 +31,8 @@ def test_nestedmkdict_03():
     assert dw.get("d.e") is None
 
     assert tuple(dw.keys()) == ("a", "b", "c")
+    assert len(dw)==3
+    assert dw.len_recursive() == 3
 
 
 @pytest.mark.parametrize("sep", [None, "."])
@@ -181,6 +185,9 @@ def test_nestedmkdict_04_del(sep):
     dct = dict(a=1, b=2, c=3, d=dict(e=4), f=dict(g=dict(h=5)))
     dw = NestedMKDict(dct, sep=sep)
 
+    assert len(dw)==5
+    assert dw.len_recursive()==5
+
     if sep is not None:
         del dw["d.e"]
     else:
@@ -207,19 +214,12 @@ def test_nestedmkdict_06_inheritance():
     )
     dct["z.z.z"] = 0
 
-    class NestedMKDictA(NestedMKDict):
-        def count(self):
-            return len(tuple(self.walkitems()))
-
-        def depth(self):
-            return max(len(k) for k in self.walkkeys())
-
-    dw = NestedMKDictA(dct, sep=".")
-    assert dw.count() == 7
-    assert dw("d").count() == 1
-    assert dw("f").count() == 2
-    assert dw("f.g").count() == 2
-    assert dw._.f._.count() == 2
+    dw = NestedMKDict(dct, sep=".")
+    assert dw.len_recursive() == 7
+    assert dw("d").len_recursive() == 1
+    assert dw("f").len_recursive() == 2
+    assert dw("f.g").len_recursive() == 2
+    assert dw._.f._.len_recursive() == 2
 
     assert dw.depth() == 3
     assert dw("d").depth() == 1
