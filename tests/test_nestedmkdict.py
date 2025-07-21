@@ -31,7 +31,7 @@ def test_nestedmkdict_03():
     assert dw.get("d.e") is None
 
     assert tuple(dw.keys()) == ("a", "b", "c")
-    assert len(dw)==3
+    assert len(dw) == 3
     assert dw.len_recursive() == 3
 
 
@@ -59,7 +59,12 @@ def test_nestedmkdict_04(sep):
     assert isinstance(dw.get_any(("f", "g"), unwrap=True), dict)
 
     with raises(TypeError):
-        assert isinstance(dw.get_value("d",), NestedMKDict)
+        assert isinstance(
+            dw.get_value(
+                "d",
+            ),
+            NestedMKDict,
+        )
     with raises(TypeError):
         assert isinstance(dw.get_value(("f", "g")), NestedMKDict)
     with raises(KeyError):
@@ -185,8 +190,8 @@ def test_nestedmkdict_04_del(sep):
     dct = dict(a=1, b=2, c=3, d=dict(e=4), f=dict(g=dict(h=5)))
     dw = NestedMKDict(dct, sep=sep)
 
-    assert len(dw)==5
-    assert dw.len_recursive()==5
+    assert len(dw) == 5
+    assert dw.len_recursive() == 5
 
     if sep is not None:
         del dw["d.e"]
@@ -207,6 +212,7 @@ def test_nestedmkdict_04_del(sep):
 
     with raises(KeyError):
         del dw["f.g"]
+
 
 def test_nestedmkdict_06_inheritance():
     dct = dict(
@@ -490,15 +496,16 @@ def test_nestedmkdict_eq_01():
     assert dw("a") == dw("a")
     assert dw("a") is not dw("a")
 
-    assert dw.get_dict("a")==d["a"]
+    assert dw.get_dict("a") == d["a"]
     assert dw.get_dict("a") is not d["a"]
-    assert dw.get_dict("a", unwrap=True)==d["a"]
+    assert dw.get_dict("a", unwrap=True) == d["a"]
     assert dw.get_dict("a", unwrap=True) is d["a"]
 
-    assert dw.get_dict(("a", "b"))==d["a"]["b"]
+    assert dw.get_dict(("a", "b")) == d["a"]["b"]
     assert dw.get_dict(("a", "b")) is not d["a"]["b"]
-    assert dw.get_dict(("a", "b"), unwrap=True)==d["a"]["b"]
+    assert dw.get_dict(("a", "b"), unwrap=True) == d["a"]["b"]
     assert dw.get_dict(("a", "b"), unwrap=True) is d["a"]["b"]
+
 
 def test_nestedmkdict_keysmap():
     dct = {
@@ -508,16 +515,13 @@ def test_nestedmkdict_keysmap():
         "c1": {"i": {"j": {"k": {"l": 6}}}},
         "d": {"e": 4, "f": 5, "g": 6},
     }
-    km = {
-            "c1": {"i": {"j": {"k": ("l",)}}},
-            "d": ("e", "f", "g")
-            }
+    km = {"c1": {"i": {"j": {"k": ("l",)}}}, "d": ("e", "f", "g")}
     dw = NestedMKDict(dct)
     keysmap = dw.keysmap()
-    assert keysmap==km
+    assert keysmap == km
 
     dw2 = NestedMKDict.from_flatdict(dw.walkitems())
-    assert dw2==dw
+    assert dw2 == dw
 
     dw3 = NestedMKDict.from_flatdict(dict(dw.walkitems()))
-    assert dw3==dw
+    assert dw3 == dw
