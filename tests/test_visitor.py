@@ -1,4 +1,4 @@
-from nested_mapping.nested_mapping import NestedMapping
+from nested_mapping import NestedMapping
 from nested_mapping.visitor import NestedMappingVisitorDemostrator
 
 def test_nested_mapping_04_visitor():

@@ -1,4 +1,4 @@
-from nested_mapping.nested_mapping import NestedMapping
+from nested_mapping import NestedMapping
 from pytest import raises
 
 def test_nested_mapping_update_01():

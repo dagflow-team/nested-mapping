@@ -1,7 +1,6 @@
-import pytest
-from nested_mapping.nested_mapping import NestedMapping
-from nested_mapping.nested_mapping import walkitems, walkkeys, walkvalues
-from pytest import raises
+from pytest import mark, raises
+
+from nested_mapping import NestedMapping, walkitems, walkkeys, walkvalues
 
 
 def test_nested_mapping_01():
@@ -35,7 +34,7 @@ def test_nested_mapping_03():
     assert dw.len_recursive() == 3
 
 
-@pytest.mark.parametrize("sep", [None, "."])
+@mark.parametrize("sep", [None, "."])
 def test_nested_mapping_04(sep):
     dct = dict(a=1, b=2, c=3, d=dict(e=4), f=dict(g=dict(h=5)))
     dct["z.z.z"] = 0
@@ -185,7 +184,7 @@ def test_nested_mapping_04(sep):
     assert dw._._ is dw
 
 
-@pytest.mark.parametrize("sep", [None, "."])
+@mark.parametrize("sep", [None, "."])
 def test_nested_mapping_04_del(sep):
     dct = dict(a=1, b=2, c=3, d=dict(e=4), f=dict(g=dict(h=5)))
     dw = NestedMapping(dct, sep=sep)

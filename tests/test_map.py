@@ -3,7 +3,7 @@ from itertools import product
 from numpy import array
 from pytest import raises
 
-from nested_mapping.nested_mapping import NestedMapping
+from nested_mapping import NestedMapping
 from nested_mapping.tools import mkmap, remap_items
 from nested_mapping.tools.map import make_reorder_function
 

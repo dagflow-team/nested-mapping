@@ -149,7 +149,6 @@ def make_reorder_function(
                 raise ValueError(
                     f"Inconsistent order definitions {order_from} and {order_to}"
                 )
-            pass
         case None:
             len_from = None
             allow_skip_items = True

@@ -1,8 +1,8 @@
 [project]
-name = "nested_mapping"
+name = "nested-mapping"
 version = "0.10.0"
 description = "The package to work with nested dictionaries supporing list/set as keys"
-# TODO: заменить на организацию
+# TODO: setup organization
 authors = [
   { name = "Gonchar Maxim", email = "gonchar@jinr.ru" },
   { name = "Vitalii Zavadskyi", email = "zavadskiy.vs@phystech.edu" },
@@ -19,10 +19,10 @@ requires-python = ">=3.11"
 dependencies = ["numpy", "ordered-set"]
 
 [project.urls]
-homepage = "https://github.com/dagflow-team/nested_mapping"
-repository = "https://github.com/dagflow-team/nested_mapping"
-documentation = "https://github.com/dagflow-team/nested_mapping/wiki"
-"Bug Tracker" = "https://github.com/dagflow-team/nested_mapping/issues"
+homepage = "https://github.com/dagflow-team/nested-mapping"
+repository = "https://github.com/dagflow-team/nested-mapping"
+documentation = "https://github.com/dagflow-team/nested-mapping/wiki"
+"Bug Tracker" = "https://github.com/dagflow-team/nested-mapping/issues"
 
 [project.optional-dependencies]
 dev = ["pytest", "pytest-cov", "coverage"]

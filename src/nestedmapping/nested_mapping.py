@@ -8,9 +8,9 @@ if TYPE_CHECKING:
     from typing import Any, Self
     from collections.abc import Generator, Iterable
 
-from .classwrapper import ClassWrapper
+from .class_wrapper import ClassWrapper
 from .ipython import repr_pretty
-from .nested_mappingaccess import NestedMappingAccess
+from .nested_mapping_access import NestedMappingAccess
 from .typing import KeyLike
 from .visitor import MakeNestedMappingVisitor, NestedMappingVisitor
 
@@ -85,10 +85,7 @@ class NestedMapping(ClassWrapper):
     ) -> Self:
         """Make a nested dictionary from a flat dictionary."""
         ret = cls({}, *args, **kwargs)
-        if isinstance(dct, Mapping):
-            iterable = dct.items()
-        else:
-            iterable = dct
+        iterable = dct.items() if isinstance(dct, Mapping) else dct
         for key, value in iterable:
             ret[key] = value
         return ret
@@ -291,10 +288,7 @@ class NestedMapping(ClassWrapper):
             raise TypeError(f"Nested value for {key} has wrong type")
 
         try:
-            if unwrap:
-                return sub.get_any(rest, unwrap=unwrap)
-            else:
-                return sub[rest]
+            return sub.get_any(rest, unwrap=unwrap) if unwrap else sub[rest]
         except KeyError as e:
             raise KeyError(key) from e
 
@@ -585,8 +579,8 @@ class NestedMapping(ClassWrapper):
         for k, v in other.walkitems():
             try:
                 key_already_present = k in self
-            except TypeError:
-                raise TypeError(f"Value for part({k}) is non nestable")
+            except TypeError as e:
+                raise TypeError(f"Value for part({k}) is non nestable") from e
             else:
                 if key_already_present:
                     raise TypeError(f"Key {k} already present")
