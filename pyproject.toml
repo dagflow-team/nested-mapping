@@ -1,5 +1,5 @@
 [project]
-name = "dictwrapper"
+name = "nestedmapping"
 version = "0.10.0"
 description = "The package to work with nested dictionaries supporing list/set as keys"
 authors = [
