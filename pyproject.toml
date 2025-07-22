@@ -16,10 +16,10 @@ dependencies = [
 ]
 
 [project.urls]
-homepage = "https://github.com/tsegelnik/dictwrapper"
-repository = "https://github.com/tsegelnik/dictwrapper"
-documentation = "https://github.com/tsegelnik/dictwrapper/wiki"
-"Bug Tracker" = "https://github.com/tsegelnik/dictwrapper/issues"
+homepage = "https://github.com/dagflow-team/nestedmapping"
+repository = "https://github.com/dagflow-team/nestedmapping"
+documentation = "https://github.com/dagflow-team/nestedmapping/wiki"
+"Bug Tracker" = "https://github.com/dagflow-team/nestedmapping/issues"
 
 [tool.poetry]
 readme = "README.md"
