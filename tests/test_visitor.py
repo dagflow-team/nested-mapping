@@ -1,7 +1,7 @@
-from nestedmapping.nestedmapping import NestedMapping
-from nestedmapping.visitor import NestedMappingVisitorDemostrator
+from nested_mapping.nested_mapping import NestedMapping
+from nested_mapping.visitor import NestedMappingVisitorDemostrator
 
-def test_nestedmapping_04_visitor():
+def test_nested_mapping_04_visitor():
     dct = dict([('a', 1), ('b', 2), ('c', 3), ('d', dict(e=4)), ('f', dict(g=dict(h=5)))])
     dct['z.z.z'] = 0
     dw = NestedMapping(dct)
@@ -24,7 +24,7 @@ def test_nestedmapping_04_visitor():
     assert v.keys==keys0
     assert v.values==values0
 
-def test_nestedmapping_05_visitor():
+def test_nested_mapping_05_visitor():
     dct = dict([('a', 1), ('b', 2), ('c', 3), ('d', dict(e=4)), ('f', dict(g=dict(h=5)))])
     dct['z.z.z'] = 0
     dw = NestedMapping(dct)

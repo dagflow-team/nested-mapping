@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from nestedmapping.nestedmapping import NestedMapping
+from nested_mapping.nested_mapping import NestedMapping
 
 from ..typing import Key
 

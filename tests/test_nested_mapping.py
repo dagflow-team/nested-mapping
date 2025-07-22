@@ -1,10 +1,10 @@
 import pytest
-from nestedmapping.nestedmapping import NestedMapping
-from nestedmapping.nestedmapping import walkitems, walkkeys, walkvalues
+from nested_mapping.nested_mapping import NestedMapping
+from nested_mapping.nested_mapping import walkitems, walkkeys, walkvalues
 from pytest import raises
 
 
-def test_nestedmapping_01():
+def test_nested_mapping_01():
     dw = NestedMapping({})
 
     assert not dw
@@ -12,7 +12,7 @@ def test_nestedmapping_01():
     assert dw.len_recursive() == 0
 
 
-def test_nestedmapping_02():
+def test_nested_mapping_02():
     dw = NestedMapping(dict(a=1))
 
     assert dw
@@ -20,7 +20,7 @@ def test_nestedmapping_02():
     assert dw.len_recursive() == 1
 
 
-def test_nestedmapping_03():
+def test_nested_mapping_03():
     d = dict(a=1, b=2, c=3)
     dw = NestedMapping(d)
 
@@ -36,7 +36,7 @@ def test_nestedmapping_03():
 
 
 @pytest.mark.parametrize("sep", [None, "."])
-def test_nestedmapping_04(sep):
+def test_nested_mapping_04(sep):
     dct = dict(a=1, b=2, c=3, d=dict(e=4), f=dict(g=dict(h=5)))
     dct["z.z.z"] = 0
     print(dct)
@@ -186,7 +186,7 @@ def test_nestedmapping_04(sep):
 
 
 @pytest.mark.parametrize("sep", [None, "."])
-def test_nestedmapping_04_del(sep):
+def test_nested_mapping_04_del(sep):
     dct = dict(a=1, b=2, c=3, d=dict(e=4), f=dict(g=dict(h=5)))
     dw = NestedMapping(dct, sep=sep)
 
@@ -214,7 +214,7 @@ def test_nestedmapping_04_del(sep):
         del dw["f.g"]
 
 
-def test_nestedmapping_06_inheritance():
+def test_nested_mapping_06_inheritance():
     dct = dict(
         [("a", 1), ("b", 2), ("c", 3), ("d", dict(e=4)), ("f", dict(g=dict(h=5, i=6)))]
     )
@@ -232,7 +232,7 @@ def test_nestedmapping_06_inheritance():
     assert dw("f").depth() == 2
 
 
-def test_nestedmapping_07_delete():
+def test_nested_mapping_07_delete():
     dct = {"a": 1, "b": 2, "c": 3, "d": {"e": 4}, "f": {"g": {"h": 5}}}
     dct["z.z.z"] = 0
     dw = NestedMapping(dct)
@@ -251,7 +251,7 @@ def test_nestedmapping_07_delete():
     assert ("f", "g") in dw
 
 
-def test_nestedmapping_07a_delete_with_parents():
+def test_nested_mapping_07a_delete_with_parents():
     dct = {
         "a": 1,
         "b": 2,
@@ -283,7 +283,7 @@ def test_nestedmapping_07a_delete_with_parents():
     assert ("i", "k") not in dw
 
 
-def test_nestedmapping_07b_pop():
+def test_nested_mapping_07b_pop():
     dct = {
         "a": 1,
         "b": 2,
@@ -313,7 +313,7 @@ def test_nestedmapping_07b_pop():
     assert ("i", "k") in dw
 
 
-def test_nestedmapping_07c_pop():
+def test_nested_mapping_07c_pop():
     dct = {
         "a": 1,
         "b": 2,
@@ -345,7 +345,7 @@ def test_nestedmapping_07c_pop():
     assert ("i", "k") not in dw
 
 
-def test_nestedmapping_08_create():
+def test_nested_mapping_08_create():
     dct = dict(
         [("a", 1), ("b", 2), ("c", 3), ("d", dict(e=4)), ("f", dict(g=dict(h=5)))]
     )
@@ -359,7 +359,7 @@ def test_nestedmapping_08_create():
     assert dw("child").object == {}
 
 
-def test_nestedmapping_09_dictcopy():
+def test_nested_mapping_09_dictcopy():
     dct = dict(
         [("a", 1), ("b", 2), ("c", 3), ("d", dict(e=4)), ("f", dict(g=dict(h=5)))]
     )
@@ -376,7 +376,7 @@ def test_nestedmapping_09_dictcopy():
     assert i == 2
 
 
-def test_nestedmapping_09_walkitems():
+def test_nested_mapping_09_walkitems():
     dct = {
         "a": 1,
         "b": 2,
@@ -416,7 +416,7 @@ def test_nestedmapping_09_walkitems():
     assert wkeys == [k for k, _ in dw.walkdicts(ignorekeys=("z", "j"))]
 
 
-def test_nestedmapping_09_walk():
+def test_nested_mapping_09_walk():
     dct = dict(
         [("a", 1), ("b", 2), ("c", 3), ("d", dict(e=4)), ("f", dict(g=dict(h=5)))]
     )
@@ -449,7 +449,7 @@ def test_nestedmapping_09_walk():
     ]
 
 
-def test_nestedmapping_10_iterkey():
+def test_nested_mapping_10_iterkey():
     d = dict(a=1, b=2, c=3)
     dw = NestedMapping(d)
 
@@ -460,7 +460,7 @@ def test_nestedmapping_10_iterkey():
     assert [1.0] == list(dw.iterkey(1.0))
 
 
-def test_nestedmapping_11_iterkey():
+def test_nested_mapping_11_iterkey():
     d = dict(a=1, b=2, c=3)
     dw = NestedMapping(d, sep=".")
 
@@ -471,7 +471,7 @@ def test_nestedmapping_11_iterkey():
     assert [1.0] == list(dw.iterkey(1.0))
 
 
-def test_nestedmapping_setdefault_01():
+def test_nested_mapping_setdefault_01():
     d = dict(a=dict(b=dict(key="value")))
     dw = NestedMapping(d)
 
@@ -486,7 +486,7 @@ def test_nestedmapping_setdefault_01():
     assert sd2._object == newdict
 
 
-def test_nestedmapping_eq_01():
+def test_nested_mapping_eq_01():
     d = dict(a=dict(b=dict(key="value")))
     dw = NestedMapping(d)
 
@@ -507,7 +507,7 @@ def test_nestedmapping_eq_01():
     assert dw.get_dict(("a", "b"), unwrap=True) is d["a"]["b"]
 
 
-def test_nestedmapping_keysmap():
+def test_nested_mapping_keysmap():
     dct = {
         "a": 1,
         "b": 2,

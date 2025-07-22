@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from .ipython import repr_pretty
 
 if TYPE_CHECKING:
-    from .nestedmapping import NestedMapping
+    from .nested_mapping import NestedMapping
 
 
 class NestedMappingAccess:

@@ -1,7 +1,7 @@
-from nestedmapping.nestedmapping import NestedMapping
+from nested_mapping.nested_mapping import NestedMapping
 from pytest import raises
 
-def test_nestedmapping_update_01():
+def test_nested_mapping_update_01():
     dct1 = {
         'a': 1,
         'b': 2,

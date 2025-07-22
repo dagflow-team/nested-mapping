@@ -9,9 +9,8 @@ if TYPE_CHECKING:
     from collections.abc import Generator, Iterable
 
 from .classwrapper import ClassWrapper
-from .flatmapping import FlatMapping
 from .ipython import repr_pretty
-from .nestedmappingaccess import NestedMappingAccess
+from .nested_mappingaccess import NestedMappingAccess
 from .typing import KeyLike
 from .visitor import MakeNestedMappingVisitor, NestedMappingVisitor
 
@@ -563,11 +562,6 @@ class NestedMapping(ClassWrapper):
             key = parentkey + (k,)
             if isinstance(v, self._wrapper_class):
                 v.visit(visitor, parentkey=key)
-            elif isinstance(v, FlatMapping) and not self._not_recursive_to_others:
-                visitor.enterdict(key, v)
-                for subk, subv in v.items():
-                    visitor.visit(key + subk, subv)
-                visitor.exitdict(key, v)
             else:
                 visitor.visit(key, v)
 
