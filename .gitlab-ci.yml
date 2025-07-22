@@ -12,6 +12,7 @@ tests:
     - pip install cython
     - python3 -m pip install --upgrade pip
     - pip install -r requirements.txt
+    - pip install -e .
     - coverage run --source=. -m pytest
     - coverage report
     - coverage xml
