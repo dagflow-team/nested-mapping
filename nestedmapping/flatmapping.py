@@ -5,7 +5,7 @@ from collections.abc import Callable, Generator
 from typing import Any
 
 
-class FlatMKDict(UserDict):
+class FlatMapping(UserDict):
     __slots__ = ('_protect', '_merge_flatdicts')
     _protect: bool
 
@@ -30,7 +30,7 @@ class FlatMKDict(UserDict):
                 "due to the protection!"
             )
 
-        if self._merge_flatdicts and isinstance(val, FlatMKDict):
+        if self._merge_flatdicts and isinstance(val, FlatMapping):
             for subkey, subval in val.items():
                 newkey = key+subkey
                 self[newkey] = subval
@@ -76,12 +76,12 @@ class FlatMKDict(UserDict):
 
         yield from res
 
-    def slice(self, *args, **kwargs) -> FlatMKDict:
+    def slice(self, *args, **kwargs) -> FlatMapping:
         """
-        Returns new `FlatMKDict` with keys containing `args`.
+        Returns new `FlatMapping` with keys containing `args`.
         It is possible to filter elements by `filterkey` and `filterkeyelem`.
         """
-        return FlatMKDict(
+        return FlatMapping(
             self.items( # pyright: ignore reportGeneralTypeIssues
                 *args,
                 filterkey=kwargs.pop("filterkey", None),

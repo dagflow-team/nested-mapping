@@ -1,9 +1,9 @@
-from multikeydict.flatmkdict import FlatMKDict
-from multikeydict.nestedmkdict import NestedMKDict
+from nestedmapping.flatmapping import FlatMapping
+from nestedmapping.nestedmapping import NestedMapping
 from pytest import raises
 
-def test_nestedmkdict_flatmkdict():
-    flatmkdict = FlatMKDict({
+def test_nestedmapping_flatmapping():
+    flatmapping = FlatMapping({
         ('a1', 'b1', 'c1'): 'v1',
         ('a2', 'b2', 'c2'): 'v2',
         })
@@ -15,24 +15,24 @@ def test_nestedmkdict_flatmkdict():
         'subfolder2': {
             'key1': 'value1',
             'key2': 'value2',
-            'st': flatmkdict
+            'st': flatmapping
         },
         'key0': 'value0'
     }}
-    dw = NestedMKDict(dct, recursive_to_others=True)
-    dws = NestedMKDict(dct, sep='.', recursive_to_others=True)
-    dwerror = NestedMKDict(dct, recursive_to_others=False)
+    dw = NestedMapping(dct, recursive_to_others=True)
+    dws = NestedMapping(dct, sep='.', recursive_to_others=True)
+    dwerror = NestedMapping(dct, recursive_to_others=False)
 
     objects = (dw, dws, dwerror)
     objectsok = (dw, dws)
 
-    assert flatmkdict['a1', 'b1', 'c1']=='v1'
-    assert flatmkdict['b1', 'a1', 'c1']=='v1'
-    assert flatmkdict['c1', 'a1', 'b1']=='v1'
+    assert flatmapping['a1', 'b1', 'c1']=='v1'
+    assert flatmapping['b1', 'a1', 'c1']=='v1'
+    assert flatmapping['c1', 'a1', 'b1']=='v1'
 
     for obj in objects:
         st1 = obj['root', 'subfolder2', 'st']
-        assert st1 is flatmkdict
+        assert st1 is flatmapping
 
     for obj in objectsok:
         assert obj['root', 'subfolder2', 'st', 'a1', 'b1', 'c1']=='v1'

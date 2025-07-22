@@ -1,4 +1,4 @@
-class NestedMKDictVisitor:
+class NestedMappingVisitor:
     def start(self, dct):
         pass
 
@@ -14,18 +14,18 @@ class NestedMKDictVisitor:
     def stop(self, dct):
         pass
 
-def MakeNestedMKDictVisitor(fcn):
-    if isinstance(fcn, NestedMKDictVisitor):
+def MakeNestedMappingVisitor(fcn):
+    if isinstance(fcn, NestedMappingVisitor):
         return fcn
 
     if not callable(fcn):
         raise TypeError(f'Expect function, got {type(fcn).__name__}')
 
-    ret=NestedMKDictVisitor()
+    ret=NestedMappingVisitor()
     ret.visit = fcn
     return ret
 
-class NestedMKDictVisitorDemostrator(NestedMKDictVisitor):
+class NestedMappingVisitorDemostrator(NestedMappingVisitor):
     fmt = '{action:7s} {depth!s:>5s} {key!s:<{keylen}s} {vtype!s:<{typelen}s} {value}'
     opts = dict(keylen=20, typelen=15)
     def typestring(self, v):

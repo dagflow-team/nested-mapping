@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from multikeydict.nestedmkdict import NestedMKDict
+from nestedmapping.nestedmapping import NestedMapping
 
 from ..typing import Key
 
@@ -23,8 +23,8 @@ def filter_items(
 
 
 def mkfilter_items(
-    mkdict: NestedMKDict, exclude: Sequence[Sequence[str] | str]
-) -> NestedMKDict:
+    mkdict: NestedMapping, exclude: Sequence[Sequence[str] | str]
+) -> NestedMapping:
     ret = mkdict.__class__({}, sep=mkdict._sep)
 
     for key, value in filter_items(mkdict.walkitems(), exclude):
