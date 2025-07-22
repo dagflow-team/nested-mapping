@@ -8,4 +8,3 @@
 -->
 
 * `NestedMapping` is a tool to work with nested dictionaries
-* `FlatMapping` is a map-like class supporing list/set as a key and does not distinguish the order of the keys
