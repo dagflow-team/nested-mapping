@@ -2,18 +2,21 @@
 name = "nestedmapping"
 version = "0.10.0"
 description = "The package to work with nested dictionaries supporing list/set as keys"
+# TODO: заменить на организацию
 authors = [
-    {name = "Gonchar Maxim", email = "gonchar@jinr.ru"},
-    {name = "Tsegelnik Nikita", email = "tsegelnik@jinr.ru"},
-    {name = "Vitalii Zavadskyi", email= "zavadskiy.vs@phystech.edu"},
+  { name = "Gonchar Maxim", email = "gonchar@jinr.ru" },
+  { name = "Vitalii Zavadskyi", email = "zavadskiy.vs@phystech.edu" },
+  { name = "Tsegelnik Nikita", email = "tsegelnik@jinr.ru" },
 ]
-license = {text = "MIT"}
+maintainers = [
+  { name = "Gonchar Maxim", email = "gonchar@jinr.ru" },
+  { name = "Vitalii Zavadskyi", email = "zavadskiy.vs@phystech.edu" },
+  { name = "Tsegelnik Nikita", email = "tsegelnik@jinr.ru" },
+]
+license = "MIT"
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = [
-    "numpy (>=2.2.4,<3.0.0)",
-    "ordered-set (>=4.1.0,<5.0.0)"
-]
+requires-python = ">=3.11"
+dependencies = ["numpy", "ordered-set"]
 
 [project.urls]
 homepage = "https://github.com/dagflow-team/nestedmapping"
@@ -21,14 +24,13 @@ repository = "https://github.com/dagflow-team/nestedmapping"
 documentation = "https://github.com/dagflow-team/nestedmapping/wiki"
 "Bug Tracker" = "https://github.com/dagflow-team/nestedmapping/issues"
 
-[tool.poetry]
-readme = "README.md"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.5"
-pytest-cov = "^6.1.1"
-coverage = "^7.8.0"
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov", "coverage"]
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools", "wheel", "packaging"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+#exclude = ["tests*", "docs*"]  # Исключает целые папки при необходимости
