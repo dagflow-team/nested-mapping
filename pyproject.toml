@@ -1,6 +1,6 @@
 [project]
 name = "nested-mapping"
-version = "0.10.0"
+version = "0.10.1"
 description = "The package to work with nested dictionaries supporing list/set as keys"
 # TODO: setup organization
 authors = [
