@@ -11,5 +11,5 @@
 
 # Repositories
 
-- Development: https://git.jinr.ru/dag-computing/dictwrapper.py
+- Development/CI: https://git.jinr.ru/dag-computing/dictwrapper.py
 - Contact/pypi/mirror: https://github.com/dagflow-team/nested-mapping
