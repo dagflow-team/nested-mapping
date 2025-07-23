@@ -8,3 +8,8 @@
 -->
 
 * `NestedMapping` is a tool to work with nested dictionaries
+
+# Repositories
+
+- Development: https://git.jinr.ru/dag-computing/dictwrapper.py
+- Contact/pypi/mirror: https://github.com/dagflow-team/nested-mapping
