@@ -29,3 +29,11 @@ urls.repository = "https://github.com/dagflow-team/nested-mapping"
 [tool.setuptools.packages.find]
 where = [ "src" ]
 #exclude = ["tests*", "docs*"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 5
+
+[tool.black]
+line-length = 100
