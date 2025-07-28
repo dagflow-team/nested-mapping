@@ -22,18 +22,21 @@ dependencies = [ "numpy", "ordered-set" ]
 
 optional-dependencies.dev = [ "coverage", "pytest", "pytest-cov" ]
 urls."Bug Tracker" = "https://github.com/dagflow-team/nested-mapping/issues"
+urls."DAGModelling Team" = "https://github.com/dagflow-team"
 urls.documentation = "https://github.com/dagflow-team/nested-mapping/wiki"
 urls.homepage = "https://github.com/dagflow-team/nested-mapping"
 urls.repository = "https://github.com/dagflow-team/nested-mapping"
 
 [tool.setuptools.packages.find]
 where = [ "src" ]
-#exclude = ["tests*", "docs*"]
+exclude = [
+  "tests*",
+]
+
+[tool.black]
+line-length = 100
 
 [tool.isort]
 profile = "black"
 line_length = 100
 multi_line_output = 5
-
-[tool.black]
-line-length = 100
