@@ -1,8 +1,8 @@
 # Summary
 
 [![python](https://img.shields.io/badge/python-3.11-purple.svg)](https://www.python.org/)
-[![pipeline](https://git.jinr.ru/dagflow-team/nested-mapping/badges/master/pipeline.svg)](https://git.jinr.ru/dagflow-team/nested_mapping.py/commits/master)
-[![coverage report](https://git.jinr.ru/dagflow-team/nested-mapping/badges/master/coverage.svg)](https://git.jinr.ru/dagflow-team/nested_mapping.py/-/commits/master)
+[![pipeline](https://git.jinr.ru/dagflow-team/nested-mapping/badges/master/pipeline.svg)](https://git.jinr.ru/dagflow-team/nested-mapping/commits/master)
+[![coverage report](https://git.jinr.ru/dagflow-team/nested-mapping/badges/master/coverage.svg)](https://git.jinr.ru/dagflow-team/nested-mapping/-/commits/master)
 <!--- Uncomment here after adding docs!
 [![pages](https://img.shields.io/badge/pages-link-white.svg)](http://dagflow-team.pages.jinr.ru/nested-mapping)
 -->
