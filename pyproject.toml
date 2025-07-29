@@ -5,7 +5,7 @@ requires = [ "packaging", "setuptools", "wheel" ]
 
 [project]
 name = "nested-mapping"
-version = "0.10.2"
+version = "0.11"
 description = "Package to work with nested dictionaries supporing list/set as keys"
 readme = "README.md"
 license = "MIT"
