@@ -7,10 +7,10 @@
 [![pages](https://img.shields.io/badge/pages-link-white.svg)](http://dag-computing.pages.jinr.ru/dictwrapper.py)
 -->
 
-* `NestedMapping` is a package to work with nested dictionaries
+A package to work with nested dictionaries.
 
 # Repositories
 
-- Development/CI: https://git.jinr.ru/dag-computing/dictwrapper.py
+- Development/CI: https://git.jinr.ru/dagflow-team/nested-mapping
 - Contact/pypi/mirror: https://github.com/dagflow-team/nested-mapping
-- PYPI: https://test.pypi.org/project/nested-mapping
+- PYPI: https://pypi.org/project/nested-mapping
