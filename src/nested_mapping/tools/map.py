@@ -156,11 +156,11 @@ def make_reorder_function(
         case _:
             raise ValueError(f"Invalid order specification: {reorder_indices}")
 
-    def reorder_indices(key: Sequence):
+    def reorder_indices_fcn(key: Sequence):
         if not allow_skip_items and len(key) != len_from:
             raise ValueError(
                 f"inconsistent index length: {len(index_order)} vs required {len(key)}"
             )
         return key.__class__(key[idx] for idx in index_order)
 
-    return reorder_indices
+    return reorder_indices_fcn
