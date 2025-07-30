@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.11] - 2025-07-29
 
-- First PYPI version
+- First PYPI version.
 
 ## [0.10.0] - 2025-07-23
 
