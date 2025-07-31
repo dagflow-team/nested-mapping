@@ -1,6 +1,6 @@
 from itertools import product
 
-from multikeydict.tools import filter_items
+from nested_mapping.tools import filter_items
 
 
 def test_filter():

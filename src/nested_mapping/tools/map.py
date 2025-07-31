@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from ..nestedmkdict import NestedMKDict
+from ..nested_mapping import NestedMapping
 from ..typing import setkey
 
 if TYPE_CHECKING:
@@ -14,10 +14,10 @@ if TYPE_CHECKING:
 
 def mkmap(
     fcn: Callable,
-    arg0: NestedMKDict,
-    *args: NestedMKDict,
+    arg0: NestedMapping,
+    *args: NestedMapping,
     sep: int | str | bool | None = None,
-) -> NestedMKDict:
+) -> NestedMapping:
     match sep:
         case False:
             # False matches case 0, but 0 does not match case False
@@ -35,7 +35,7 @@ def mkmap(
             pass
         case _:
             raise TypeError(f"Invalid sep: {sep}")
-    ret = NestedMKDict({}, sep=sep)
+    ret = NestedMapping({}, sep=sep)
     for key, value0 in arg0.walkitems():
         values = (arg[key] for arg in args)
         ret[key] = fcn(value0, *values)
@@ -43,8 +43,8 @@ def mkmap(
 
 
 def remap_items(
-    source: NestedMKDict,
-    target: NestedMKDict | None = None,
+    source: NestedMapping,
+    target: NestedMapping | None = None,
     *,
     rename_indices: Mapping[str, Sequence[str]] | None = None,
     reorder_indices: (
@@ -59,11 +59,11 @@ def remap_items(
     skip_indices_target: Sequence[KeyLike | set] | None = None,
     fcn: Callable[[Any], Any] | None = None,
     verbose: bool = False,
-) -> NestedMKDict:
+) -> NestedMapping:
     from itertools import product
 
     if target is None:
-        target = NestedMKDict()
+        target = NestedMapping()
 
     skip_source = _make_skip_fcn(skip_indices_source)
     skip_target = _make_skip_fcn(skip_indices_target)
@@ -149,7 +149,6 @@ def make_reorder_function(
                 raise ValueError(
                     f"Inconsistent order definitions {order_from} and {order_to}"
                 )
-            pass
         case None:
             len_from = None
             allow_skip_items = True
@@ -157,11 +156,11 @@ def make_reorder_function(
         case _:
             raise ValueError(f"Invalid order specification: {reorder_indices}")
 
-    def reorder_indices(key: Sequence):
+    def reorder_indices_fcn(key: Sequence):
         if not allow_skip_items and len(key) != len_from:
             raise ValueError(
                 f"inconsistent index length: {len(index_order)} vs required {len(key)}"
             )
         return key.__class__(key[idx] for idx in index_order)
 
-    return reorder_indices
+    return reorder_indices_fcn
