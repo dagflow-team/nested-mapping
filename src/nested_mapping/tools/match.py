@@ -46,7 +46,7 @@ def match_keys(
             return right.issubset(left)
 
     else:
-        raise RuntimeError("Either right_in_left or left_in_right should be True")
+        raise RuntimeError("At least on of the flags should be true: right_in_left or left_in_right")
 
     skipped_right_keys = []
     processed_left_keys = set()
