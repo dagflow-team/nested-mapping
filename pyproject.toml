@@ -5,8 +5,8 @@ requires = [ "packaging", "setuptools", "wheel" ]
 
 [project]
 name = "nested-mapping"
-version = "0.11"
-description = "Package to work with nested dictionaries supporing list/set as keys"
+version = "0.11.0"
+description = "A wrapper and a toolkit for working with nested mappings in Python"
 readme = "README.md"
 license = "MIT"
 maintainers = [ { name = "DAGModelling Team", email = "dagflow@jinr.ru" } ]
