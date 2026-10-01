@@ -422,7 +422,7 @@ def test_nested_mapping_09_walkitems():
     assert wkeys == list(dw.walkjoinedkeys(skip_fcn=skip_fcn2))
 
     def skip_fcn3(key: TupleKey) -> bool:
-        return len(key)==1
+        return len(key) == 1
 
     wkeys = ["c1.i.j.k.l", "d.e", "f.g.h"]
     assert wkeys == list(dw.walkjoinedkeys(skip_fcn=skip_fcn3))
