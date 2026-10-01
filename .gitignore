@@ -7,6 +7,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+src/nested_mapping/__version__.py
 
 # C extensions
 *.so
