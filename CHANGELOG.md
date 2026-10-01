@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [0.12] - 2026-10-01
 
 - add `skip_fcn` argument for `walk*` methods to skip items from iteration.
+- remove support of Python 3.11.
 
 ## [0.11] - 2025-07-29
 
