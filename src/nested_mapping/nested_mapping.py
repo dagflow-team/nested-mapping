@@ -5,8 +5,10 @@ from contextlib import suppress
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Any, Self
+    from typing import Any, Self, Callable
     from collections.abc import Generator, Iterable
+
+    from .typing import TupleKey
 
 from .class_wrapper import ClassWrapper
 from .ipython import repr_pretty
@@ -219,9 +221,7 @@ class NestedMapping(ClassWrapper):
         if rest:
             sub = self._wrap(sub, parent=self)
             if self._not_recursive_to_others and not isinstance(sub, NestedMapping):
-                raise TypeError(
-                    f"Expect non-mapping as value for {key}, got {type(sub).__name__}"
-                )
+                raise TypeError(f"Expect non-mapping as value for {key}, got {type(sub).__name__}")
 
             return sub.get(rest, default)
 
@@ -246,9 +246,7 @@ class NestedMapping(ClassWrapper):
         if rest:
             sub = self._wrap(sub, parent=self)
             if self._not_recursive_to_others and not isinstance(sub, NestedMapping):
-                raise TypeError(
-                    f"Expect non-mapping as value for {key}, got {type(sub).__name__}"
-                )
+                raise TypeError(f"Expect non-mapping as value for {key}, got {type(sub).__name__}")
 
             try:
                 return sub.get_value(rest)
@@ -256,15 +254,11 @@ class NestedMapping(ClassWrapper):
                 failed_rest = getattr(e, "rest", rest)
                 error = KeyError(f"{key}: {failed_rest}")
                 with suppress(RuntimeError):
-                    error.rest = (  # pyright: ignore [reportAttributeAccessIssue]
-                        failed_rest
-                    )
+                    error.rest = failed_rest  # pyright: ignore [reportAttributeAccessIssue]
                 raise error from e
 
         if isinstance(sub, (ClassWrapper, self._types)):
-            raise TypeError(
-                f"Invalid value type {type(sub)} for key {key}. Expect non-mapping."
-            )
+            raise TypeError(f"Invalid value type {type(sub)} for key {key}. Expect non-mapping.")
         return sub
 
     def get_any(self, key, *, unwrap: bool = False) -> Any:
@@ -446,6 +440,7 @@ class NestedMapping(ClassWrapper):
         include_dicts: bool = False,
         appendstartkey: bool = False,
         maxdepth: int | None = None,
+        skip_fcn: Callable[[TupleKey], bool] = lambda _: False,
     ):
         v0 = self.get_any(startfromkey)
         k0 = tuple(self.iterkey(startfromkey))
@@ -457,9 +452,11 @@ class NestedMapping(ClassWrapper):
 
         if maxdepth == 0 or not isinstance(v0, self._wrapper_class):
             if appendstartkey:
-                yield k0, v0
+                if not skip_fcn(k0):
+                    yield k0, v0
             else:
-                yield (), v0
+                if not skip_fcn(()):
+                    yield (), v0
             return
 
         if not appendstartkey:
@@ -470,22 +467,37 @@ class NestedMapping(ClassWrapper):
             if isinstance(v, self._wrapper_class):
                 if include_dicts:
                     yield k, v
-                for k1, v1 in v.walkitems(
-                    include_dicts=include_dicts, maxdepth=nextdepth
-                ):
-                    yield k + k1, v1
+                for k1, v1 in v.walkitems(include_dicts=include_dicts, maxdepth=nextdepth):
+                    k2 = k + k1
+                    if skip_fcn(k2):
+                        continue
+                    yield k2, v1
             elif not self._not_recursive_to_others and isinstance(v, Mapping):
                 if include_dicts:
-                    yield k, v
+                    if not skip_fcn(k):
+                        yield k, v
                 for k1, v1 in v.items():
                     if isinstance(k1, tuple):
-                        yield k + k1, v1
+                        k2 = k + k1
+                        if skip_fcn(k2):
+                            continue
+                        yield k2, v1
                     else:
-                        yield k + (k1,), v1
+                        k2 = k + (k1,)
+                        if skip_fcn(k2):
+                            continue
+                        yield k2, v1
             else:
-                yield k, v
+                if not skip_fcn(k):
+                    yield k, v
 
-    def walkdicts(self, *, yieldself=False, ignorekeys: Sequence = ()):
+    def walkdicts(
+        self,
+        *,
+        yieldself=False,
+        ignorekeys: Sequence = (),
+        skip_fcn: Callable[[TupleKey], bool] = lambda _: False,
+    ):
         for k, v in self.items():
             if k in ignorekeys:
                 continue
@@ -493,16 +505,17 @@ class NestedMapping(ClassWrapper):
             if isinstance(v, self._wrapper_class):
                 yieldself = False
                 for k1, v1 in v.walkdicts(yieldself=True, ignorekeys=ignorekeys):
-                    yield k + k1, v1
-        if yieldself:
+                    k2 = k + k1
+                    if skip_fcn(k2):
+                        continue
+                    yield k2, v1
+        if yieldself and not skip_fcn(()):
             yield (), self
 
     def keysmap(self) -> NestedMapping:
         """Return a nested dictionary instance with similar structure, but
         dictionaries are replaced with tuples of their keys."""
-        return NestedMapping.from_flatdict(
-            {k: tuple(dct.keys()) for k, dct in self.walkdicts()}
-        )
+        return NestedMapping.from_flatdict({k: tuple(dct.keys()) for k, dct in self.walkdicts()})
 
     def unique_key_parts(self) -> set[str]:
         """Return a set with all the unique set parts."""
@@ -515,9 +528,7 @@ class NestedMapping(ClassWrapper):
         for k, _ in self.walkitems(*args, **kwargs):
             yield k
 
-    def walkjoinedkeys(
-        self, *args, sep: str | None = None, **kwargs
-    ) -> Generator[str, None, None]:
+    def walkjoinedkeys(self, *args, sep: str | None = None, **kwargs) -> Generator[str, None, None]:
         if sep is None:
             sep = self._sep
         if sep is None:

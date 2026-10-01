@@ -1,6 +1,7 @@
 from pytest import mark, raises
 
 from nested_mapping import NestedMapping, walkitems, walkkeys, walkvalues
+from nested_mapping.typing import TupleKey
 
 
 def test_nested_mapping_01():
@@ -214,9 +215,7 @@ def test_nested_mapping_04_del(sep):
 
 
 def test_nested_mapping_06_inheritance():
-    dct = dict(
-        [("a", 1), ("b", 2), ("c", 3), ("d", dict(e=4)), ("f", dict(g=dict(h=5, i=6)))]
-    )
+    dct = dict([("a", 1), ("b", 2), ("c", 3), ("d", dict(e=4)), ("f", dict(g=dict(h=5, i=6)))])
     dct["z.z.z"] = 0
 
     dw = NestedMapping(dct, sep=".")
@@ -345,9 +344,7 @@ def test_nested_mapping_07c_pop():
 
 
 def test_nested_mapping_08_create():
-    dct = dict(
-        [("a", 1), ("b", 2), ("c", 3), ("d", dict(e=4)), ("f", dict(g=dict(h=5)))]
-    )
+    dct = dict([("a", 1), ("b", 2), ("c", 3), ("d", dict(e=4)), ("f", dict(g=dict(h=5)))])
     dct["z.z.z"] = 0
     dw = NestedMapping(dct, sep=".")
 
@@ -359,9 +356,7 @@ def test_nested_mapping_08_create():
 
 
 def test_nested_mapping_09_dictcopy():
-    dct = dict(
-        [("a", 1), ("b", 2), ("c", 3), ("d", dict(e=4)), ("f", dict(g=dict(h=5)))]
-    )
+    dct = dict([("a", 1), ("b", 2), ("c", 3), ("d", dict(e=4)), ("f", dict(g=dict(h=5)))])
     dct["z"] = {}
     dw = NestedMapping(dct, sep=".")
 
@@ -408,17 +403,51 @@ def test_nested_mapping_09_walkitems():
     assert wkeys == list(dw.walkjoinedkeys(sep="/"))
     assert wkeys == list(dws.walkjoinedkeys(sep="/"))
 
+    def skip_fcn1(key: TupleKey) -> bool:
+        return key == (
+            "c1",
+            "i",
+            "j",
+            "k",
+            "l",
+        )
+
+    wkeys = ["a", "b", "c", "d.e", "f.g.h"]
+    assert wkeys == list(dw.walkjoinedkeys(skip_fcn=skip_fcn1))
+
+    def skip_fcn2(key: TupleKey) -> bool:
+        return "i" in key or "e" in key or "a" in key
+
+    wkeys = ["b", "c", "f.g.h"]
+    assert wkeys == list(dw.walkjoinedkeys(skip_fcn=skip_fcn2))
+
+    def skip_fcn3(key: TupleKey) -> bool:
+        return len(key) == 1
+
+    wkeys = ["c1.i.j.k.l", "d.e", "f.g.h"]
+    assert wkeys == list(dw.walkjoinedkeys(skip_fcn=skip_fcn3))
+
     wkeys = [tuple(s.split(".")) for s in ("c1.i.j.k", "d", "f.g", "z")]
     assert wkeys == [k for k, _ in dw.walkdicts()]
 
     wkeys = [tuple(s.split(".")) for s in ("c1.i", "d", "f.g")]
     assert wkeys == [k for k, _ in dw.walkdicts(ignorekeys=("z", "j"))]
 
+    def skip_fcn4(key: TupleKey) -> bool:
+        return "i" in key or "e" in key or "a" in key
+
+    wkeys = [tuple(s.split(".")) for s in ("d", "f.g", "z")]
+    assert wkeys == [k for k, _ in dw.walkdicts(skip_fcn=skip_fcn4)]
+
+    def skip_fcn5(key: TupleKey) -> bool:
+        return "i" in key or "d" in key
+
+    wkeys = [tuple(s.split(".")) for s in ("f.g", "z")]
+    assert wkeys == [k for k, _ in dw.walkdicts(skip_fcn=skip_fcn5)]
+
 
 def test_nested_mapping_09_walk():
-    dct = dict(
-        [("a", 1), ("b", 2), ("c", 3), ("d", dict(e=4)), ("f", dict(g=dict(h=5)))]
-    )
+    dct = dict([("a", 1), ("b", 2), ("c", 3), ("d", dict(e=4)), ("f", dict(g=dict(h=5)))])
     dw = NestedMapping(dct)
 
     keys0 = [("a",), ("b",), ("c",), ("d", "e"), ("f", "g", "h")]
@@ -436,16 +465,12 @@ def test_nested_mapping_09_walk():
 
     assert [(k, v) for k, v in dw.walkitems("a", appendstartkey=True)] == [(("a",), 1)]
     assert [(k, v) for k, v in dw.walkitems("a", appendstartkey=False)] == [((), 1)]
-    assert [(k, v) for k, v in dw.walkitems("d", appendstartkey=True)] == [
-        (("d", "e"), 4)
-    ]
+    assert [(k, v) for k, v in dw.walkitems("d", appendstartkey=True)] == [(("d", "e"), 4)]
     assert [(k, v) for k, v in dw.walkitems("d", appendstartkey=False)] == [(("e",), 4)]
     assert [(k, v) for k, v in dw.walkitems(("f", "g"), appendstartkey=True)] == [
         (("f", "g", "h"), 5)
     ]
-    assert [(k, v) for k, v in dw.walkitems(("f", "g"), appendstartkey=False)] == [
-        (("h",), 5)
-    ]
+    assert [(k, v) for k, v in dw.walkitems(("f", "g"), appendstartkey=False)] == [(("h",), 5)]
 
 
 def test_nested_mapping_10_iterkey():
