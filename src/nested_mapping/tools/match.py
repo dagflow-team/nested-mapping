@@ -23,6 +23,7 @@ def match_keys(
     right_in_left: bool = True,
     require_all_right_keys_processed: bool = True,
     require_all_left_keys_processed: bool = True,
+    require_all_left_keys_match_right: bool = True,
     skippable_left_keys_should_contain: Sequence[KeyLike] | None = None,
 ) -> None:
     if isinstance(keys_right, str):
@@ -46,16 +47,22 @@ def match_keys(
             return right.issubset(left)
 
     else:
-        raise RuntimeError("At least on of the flags should be true: right_in_left or left_in_right")
+        raise RuntimeError(
+            "At least on of the flags should be true: right_in_left or left_in_right"
+        )
 
     skipped_right_keys = []
-    processed_left_keys = set()
+    processed_right_keys = set()
+    processed_left_keys_in_total = set()
     skipped_left_keys = set()
+    skipped_right_keys_for_left = []
+    processed_right_keys_for_left = []
 
     collect_skipped_left_keys = (
         require_all_left_keys_processed or skippable_left_keys_should_contain
     )
 
+    i_left = -1
     for key_right in keys_right:
         key_right_proper = properkey(key_right)
         setkey_right = OrderedSet(key_right_proper)
@@ -64,16 +71,24 @@ def match_keys(
 
         right_processed = False
         for i_left, keys_left in enumerate(keys_left_seq):
+            if i_left >= len(skipped_right_keys_for_left):
+                processed_right_keys_for_left.append(processed_right_keys_i := set())
+                skipped_right_keys_for_left.append(skipped_right_keys_i := set())
+            else:
+                processed_right_keys_i = processed_right_keys_for_left[i_left]
+                skipped_right_keys_i = skipped_right_keys_for_left[i_left]
+
             for key_left in keys_left:
                 if key_left:
                     key_left_proper = properkey(key_left)
                     setkey_left = OrderedSet(key_left_proper)
                     if not keys_consistent(setkey_left, setkey_right):
-                        if (
-                            collect_skipped_left_keys
-                            and key_left_proper not in processed_left_keys
-                        ):
-                            skipped_left_keys.add(key_left_proper)
+                        if collect_skipped_left_keys:
+                            if key_left_proper not in processed_left_keys_in_total:
+                                skipped_left_keys.add(key_left_proper)
+                        if require_all_left_keys_match_right:
+                            if key_right_proper not in processed_right_keys_i:
+                                skipped_right_keys_i.add(key_right_proper)
                         if fcn_skip:
                             fcn_skip(i_left, key_left_proper, key_right_proper)
                         continue
@@ -86,19 +101,34 @@ def match_keys(
                 if collect_skipped_left_keys:
                     with suppress(KeyError):
                         skipped_left_keys.remove(key_left_proper)
-                    processed_left_keys.add(key_left_proper)
+                    processed_left_keys_in_total.add(key_left_proper)
+
+                if require_all_left_keys_match_right:
+                    with suppress(KeyError):
+                        skipped_right_keys_i.remove(key_right_proper)
+                    processed_right_keys_i.add(key_right_proper)
 
         if fcn_outer_after is not None:
             fcn_outer_after(key_right_proper)
 
-        if not right_processed:
+        if right_processed:
+            if require_all_left_keys_match_right:
+                processed_right_keys.add(key_right_proper)
+        elif require_all_right_keys_processed:
             skipped_right_keys.append(key_right_proper)
+
+    if require_all_left_keys_match_right:
+        for i, (skipped_left_keys_i, processed_left_keys_i) in enumerate(
+            zip(skipped_right_keys_for_left, processed_right_keys_for_left)
+        ):
+            if processed_left_keys_i != processed_right_keys:
+                raise ValueError(
+                    f"match_keys: left sequence {i} did not provide keys {skipped_left_keys_i!s}"
+                )
 
     if skipped_left_keys:
         if require_all_left_keys_processed:
-            raise ValueError(
-                f"match_keys: there were unprocessed left keys {skipped_left_keys!s}"
-            )
+            raise ValueError(f"match_keys: there were unprocessed left keys {skipped_left_keys!s}")
         failure, incorrectly_skipped_key = _check_skipped_keys_incorrect(
             skipped_left_keys, skippable_left_keys_should_contain
         )
@@ -109,9 +139,7 @@ def match_keys(
             )
 
     if require_all_right_keys_processed and skipped_right_keys:
-        raise ValueError(
-            f"match_keys: there were unprocessed right keys {skipped_right_keys!s}"
-        )
+        raise ValueError(f"match_keys: there were unprocessed right keys {skipped_right_keys!s}")
 
 
 def _check_skipped_keys_incorrect(
