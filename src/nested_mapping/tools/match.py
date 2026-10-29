@@ -29,62 +29,85 @@ def set_keys_consistent_right_in_left(
     return set_key_right.issubset(set_key_left)
 
 
-def match_keys_to_set_key(
+def match_keys_to_key(
     keys_left: Sequence[KeyLike],
-    key_right_proper: TupleKey,
-    set_key_right: set,
+    key_right_tuple: TupleKey,
+    key_right_set: set | OrderedSet,
     keys_consistent: Callable[[set | OrderedSet, set | OrderedSet], bool],
     fcn: Callable[[TupleKey, TupleKey], Any],
     *,
-    fcn_on_skip: Callable[[TupleKey, TupleKey], Any] | None = None,
-    require_all_left_keys_match_right: bool,
-    collect_skipped_left_keys: bool,
-    skipped_left_keys_in_total: set,
-    processed_left_keys_in_total: set,
-    processed_right_keys_i: set,
-    skipped_right_keys_i: set,
+    fcn_on_reject: Callable[[TupleKey, TupleKey], Any] | None = None,
+    collect_rejected_right_keys: bool = False,
+    collect_rejected_left_keys: bool = False,
+    rejected_left_keys: set | None = None,
+    accepted_left_keys: set | None = None,
+    accepted_right_keys: set | None = None,
+    rejected_right_keys: set | None = None,
 ) -> bool:
-    right_processed = False
+    assert not collect_rejected_right_keys or (
+        accepted_right_keys is not None and rejected_right_keys is not None
+    )
+    assert not collect_rejected_left_keys or (
+        accepted_left_keys is not None and rejected_left_keys is not None
+    )
+    right_key_accepted = False
     for key_left in keys_left:
-        key_left_proper = properkey(key_left)
-        set_key_left = OrderedSet(key_left_proper)
-        if not keys_consistent(set_key_left, set_key_right):
-            if collect_skipped_left_keys:
-                if key_left_proper not in processed_left_keys_in_total:
-                    skipped_left_keys_in_total.add(key_left_proper)
-            if require_all_left_keys_match_right:
-                if key_right_proper not in processed_right_keys_i:
-                    skipped_right_keys_i.add(key_right_proper)
-            if fcn_on_skip:
-                fcn_on_skip(key_left_proper, key_right_proper)
+        key_left_tuple = properkey(key_left)
+        key_left_set = OrderedSet(key_left_tuple)
+
+        if not keys_consistent(key_left_set, key_right_set):
+            if (
+                collect_rejected_left_keys
+                and key_left_tuple
+                not in accepted_left_keys  # pyright: ignore [reportOperatorIssue]
+            ):
+                rejected_left_keys.add(  # pyright: ignore [reportOptionalMemberAccess]
+                    key_left_tuple
+                )
+            if (
+                collect_rejected_right_keys
+                and key_right_tuple
+                not in accepted_right_keys  # pyright: ignore [reportOperatorIssue]
+            ):
+                rejected_right_keys.add(  # pyright: ignore [reportOptionalMemberAccess]
+                    key_right_tuple
+                )
+            if fcn_on_reject:
+                fcn_on_reject(key_left_tuple, key_right_tuple)
             continue
 
-        fcn(key_left_proper, key_right_proper)
-        right_processed = True
+        fcn(key_left_tuple, key_right_tuple)
+        right_key_accepted = True
 
-        if collect_skipped_left_keys:
+        if collect_rejected_left_keys:
             with suppress(KeyError):
-                skipped_left_keys_in_total.remove(key_left_proper)
-            processed_left_keys_in_total.add(key_left_proper)
+                rejected_left_keys.remove(
+                    key_left_tuple
+                )  # pyright: ignore [reportOptionalMemberAccess]
+            accepted_left_keys.add(key_left_tuple)  # pyright: ignore [reportOptionalMemberAccess]
 
-        if require_all_left_keys_match_right:
+        if collect_rejected_right_keys:
             with suppress(KeyError):
-                skipped_right_keys_i.remove(key_right_proper)
-            processed_right_keys_i.add(key_right_proper)
+                rejected_right_keys.remove(
+                    key_right_tuple
+                )  # pyright: ignore [reportOptionalMemberAccess]
+            accepted_right_keys.add(key_right_tuple)  # pyright: ignore [reportOptionalMemberAccess]
 
-    return right_processed
+    return right_key_accepted
+
 
 def zip_match_keys_to_set_key(
     keys_left: Sequence[KeyLike],
-    tuple_key_right: TupleKey,
-    set_key_right: set,
+    key_right_tuple: TupleKey,
+    key_right_set: set,
     keys_consistent_fcn: Callable[[set | OrderedSet, set | OrderedSet], bool],
 ):
     for key_left in keys_left:
-        tuple_key_left = properkey(key_left)
-        set_key_left = OrderedSet(tuple_key_left)
-        if keys_consistent_fcn(set_key_left, set_key_right):
-            yield tuple_key_left, tuple_key_right
+        key_left_tuple = properkey(key_left)
+        key_left_set = OrderedSet(key_left_tuple)
+        if keys_consistent_fcn(key_left_set, key_right_set):
+            yield key_left_tuple, key_right_tuple
+
 
 def match_keys(
     keys_left_seq: Sequence[Sequence[KeyLike]],
@@ -93,11 +116,11 @@ def match_keys(
     *,
     fcn_outer_before: Callable[[TupleKey], Any] | None = None,
     fcn_outer_after: Callable[[TupleKey], Any] | None = None,
-    fcn_on_skip: Callable[[int, TupleKey, TupleKey], Any] | None = None,
+    fcn_on_reject: Callable[[int, TupleKey, TupleKey], Any] | None = None,
     left_in_right: bool = True,
     right_in_left: bool = True,
-    require_all_right_keys_processed: bool = True,
-    require_all_left_keys_processed: bool = True,
+    require_all_right_keys_accepted: bool = True,
+    require_all_left_keys_accepted: bool = True,
     require_all_left_keys_match_right: bool = True,
     skippable_left_keys_should_contain: Sequence[KeyLike] | None = None,
 ) -> None:
@@ -107,108 +130,95 @@ def match_keys(
         raise RuntimeError("Left sequence is empty")
 
     if left_in_right and right_in_left:
-        keys_consistent = set_keys_consistent_symmetric
+        keys_consistent_fcn = set_keys_consistent_symmetric
     elif left_in_right:
-        keys_consistent = set_keys_consistent_left_in_right
+        keys_consistent_fcn = set_keys_consistent_left_in_right
     elif right_in_left:
-        keys_consistent = set_keys_consistent_right_in_left
-
+        keys_consistent_fcn = set_keys_consistent_right_in_left
     else:
         raise RuntimeError(
             "At least on of the flags should be true: right_in_left or left_in_right"
         )
 
-    skipped_right_keys = []
-    processed_right_keys = set()
-    processed_left_keys_in_total = set()
-    skipped_left_keys_in_total = set()
-    skipped_right_keys_for_left = []
-    processed_right_keys_for_left = []
+    rejected_right_keys = []
+    accepted_right_keys = set()
+    accepted_left_keys = set()
+    rejected_left_keys = set()
+    rejected_right_keys_for_left = []
+    accepted_right_keys_for_left = []
 
-    collect_skipped_left_keys = (
-        require_all_left_keys_processed or skippable_left_keys_should_contain
+    collect_rejected_left_keys = bool(
+        require_all_left_keys_accepted or skippable_left_keys_should_contain
     )
+    collect_rejected_right_keys = require_all_left_keys_match_right
 
     i_left = -1
     for key_right in keys_right:
-        key_right_proper = properkey(key_right)
-        setkey_right = OrderedSet(key_right_proper)
+        key_right_tuple = properkey(key_right)
+        key_right_set = OrderedSet(key_right_tuple)
         if fcn_outer_before is not None:
-            fcn_outer_before(key_right_proper)
+            fcn_outer_before(key_right_tuple)
 
-        right_processed = False
+        right_key_accepted = False
         for i_left, keys_left in enumerate(keys_left_seq):
-            if i_left >= len(skipped_right_keys_for_left):
-                processed_right_keys_for_left.append(processed_right_keys_i := set())
-                skipped_right_keys_for_left.append(skipped_right_keys_i := set())
+            if i_left >= len(rejected_right_keys_for_left):
+                accepted_right_keys_for_left.append(accepted_right_keys_i := set())
+                rejected_right_keys_for_left.append(rejected_right_keys_i := set())
             else:
-                processed_right_keys_i = processed_right_keys_for_left[i_left]
-                skipped_right_keys_i = skipped_right_keys_for_left[i_left]
+                accepted_right_keys_i = accepted_right_keys_for_left[i_left]
+                rejected_right_keys_i = rejected_right_keys_for_left[i_left]
 
-            for key_left in keys_left:
-                if key_left:
-                    key_left_proper = properkey(key_left)
-                    setkey_left = OrderedSet(key_left_proper)
-                    if not keys_consistent(setkey_left, setkey_right):
-                        if collect_skipped_left_keys:
-                            if key_left_proper not in processed_left_keys_in_total:
-                                skipped_left_keys_in_total.add(key_left_proper)
-                        if require_all_left_keys_match_right:
-                            if key_right_proper not in processed_right_keys_i:
-                                skipped_right_keys_i.add(key_right_proper)
-                        if fcn_on_skip:
-                            fcn_on_skip(i_left, key_left_proper, key_right_proper)
-                        continue
-                else:
-                    key_left_proper = ()
-
-                fcn(i_left, key_left_proper, key_right_proper)
-                right_processed = True
-
-                if collect_skipped_left_keys:
-                    with suppress(KeyError):
-                        skipped_left_keys_in_total.remove(key_left_proper)
-                    processed_left_keys_in_total.add(key_left_proper)
-
-                if require_all_left_keys_match_right:
-                    with suppress(KeyError):
-                        skipped_right_keys_i.remove(key_right_proper)
-                    processed_right_keys_i.add(key_right_proper)
+            right_key_accepted = match_keys_to_key(
+                keys_left,
+                key_right_tuple,
+                key_right_set,
+                keys_consistent_fcn,
+                lambda *args: fcn(i_left, *args),
+                fcn_on_reject=(
+                    (lambda *args: fcn_on_reject(i_left, *args)) if fcn_on_reject is not None else None
+                ),
+                collect_rejected_left_keys = collect_rejected_left_keys,
+                collect_rejected_right_keys = collect_rejected_right_keys,
+                rejected_left_keys=rejected_left_keys,
+                accepted_left_keys=accepted_left_keys,
+                rejected_right_keys=rejected_right_keys_i,
+                accepted_right_keys=accepted_right_keys_i,
+            )
 
         if fcn_outer_after is not None:
-            fcn_outer_after(key_right_proper)
+            fcn_outer_after(key_right_tuple)
 
-        if right_processed:
+        if right_key_accepted:
             if require_all_left_keys_match_right:
-                processed_right_keys.add(key_right_proper)
-        elif require_all_right_keys_processed:
-            skipped_right_keys.append(key_right_proper)
+                accepted_right_keys.add(key_right_tuple)
+        elif require_all_right_keys_accepted:
+            rejected_right_keys.append(key_right_tuple)
 
     if require_all_left_keys_match_right:
         for i, (skipped_left_keys_i, processed_left_keys_i) in enumerate(
-            zip(skipped_right_keys_for_left, processed_right_keys_for_left)
+            zip(rejected_right_keys_for_left, accepted_right_keys_for_left)
         ):
-            if processed_left_keys_i != processed_right_keys:
+            if processed_left_keys_i != accepted_right_keys:
                 raise ValueError(
                     f"match_keys: left sequence {i} did not provide keys {skipped_left_keys_i!s}"
                 )
 
-    if skipped_left_keys_in_total:
-        if require_all_left_keys_processed:
+    if rejected_left_keys:
+        if require_all_left_keys_accepted:
             raise ValueError(
-                f"match_keys: there were unprocessed left keys {skipped_left_keys_in_total!s}"
+                f"match_keys: there were unprocessed left keys {rejected_left_keys!s}"
             )
         failure, incorrectly_skipped_key = _check_skipped_keys_incorrect(
-            skipped_left_keys_in_total, skippable_left_keys_should_contain
+            rejected_left_keys, skippable_left_keys_should_contain
         )
         if failure:
             raise ValueError(
-                f"match_keys: there were unprocessed left keys {skipped_left_keys_in_total!s}. "
+                f"match_keys: there were unprocessed left keys {rejected_left_keys!s}. "
                 f"{incorrectly_skipped_key} should not have been skipped."
             )
 
-    if require_all_right_keys_processed and skipped_right_keys:
-        raise ValueError(f"match_keys: there were unprocessed right keys {skipped_right_keys!s}")
+    if require_all_right_keys_accepted and rejected_right_keys:
+        raise ValueError(f"match_keys: there were unprocessed right keys {rejected_right_keys!s}")
 
 
 def _check_skipped_keys_incorrect(
