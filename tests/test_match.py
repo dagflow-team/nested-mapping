@@ -4,36 +4,90 @@ from pytest import raises
 
 from nested_mapping.tools import match_keys
 from nested_mapping.tools.match import (
-    keys_consistent_left_in_right,
-    keys_consistent_right_in_left,
-    keys_consistent_symmetric,
+    set_keys_consistent_left_in_right,
+    set_keys_consistent_right_in_left,
+    set_keys_consistent_symmetric,
+    zip_match_keys_to_set_key,
 )
 
 
-def test_keys_consistent():
-    assert keys_consistent_symmetric(set("abc"), set("abc")) is True
-    assert keys_consistent_symmetric(set("ab"), set("abc")) is True
-    assert keys_consistent_symmetric(set("abc"), set("ac")) is True
+def test_set_keys_consistent():
+    ab = set("ab")
+    abc = set("abc")
+    abce = set("abce")
+    abcd = set("abcd")
+    abd = set("abd")
+    abe = set("abe")
+    ac = set("ac")
+    empty = set()
+    assert set_keys_consistent_symmetric(abc, abc) is True
+    assert set_keys_consistent_symmetric(ab, abc) is True
+    assert set_keys_consistent_symmetric(abc, ac) is True
 
-    assert keys_consistent_symmetric(set("abcd"), set("abce")) is False
-    assert keys_consistent_symmetric(set("abd"), set("abce")) is False
-    assert keys_consistent_symmetric(set("abcd"), set("abe")) is False
+    assert set_keys_consistent_symmetric(abcd, abce) is False
+    assert set_keys_consistent_symmetric(abd, abce) is False
+    assert set_keys_consistent_symmetric(abcd, abe) is False
+    assert set_keys_consistent_symmetric(empty, abc) is True
+    assert set_keys_consistent_symmetric(abc, empty) is True
 
-    assert keys_consistent_left_in_right(set("abc"), set("abc")) is True
-    assert keys_consistent_left_in_right(set("ab"), set("abc")) is True
-    assert keys_consistent_left_in_right(set("abc"), set("ac")) is False
+    assert set_keys_consistent_left_in_right(abc, abc) is True
+    assert set_keys_consistent_left_in_right(ab, abc) is True
+    assert set_keys_consistent_left_in_right(abc, ac) is False
 
-    assert keys_consistent_left_in_right(set("abcd"), set("abce")) is False
-    assert keys_consistent_left_in_right(set("abd"), set("abce")) is False
-    assert keys_consistent_left_in_right(set("abcd"), set("abe")) is False
+    assert set_keys_consistent_left_in_right(abcd, abce) is False
+    assert set_keys_consistent_left_in_right(abd, abce) is False
+    assert set_keys_consistent_left_in_right(abcd, abe) is False
+    assert set_keys_consistent_left_in_right(empty, abc) is True
+    assert set_keys_consistent_left_in_right(abc, empty) is False
 
-    assert keys_consistent_right_in_left(set("abc"), set("abc")) is True
-    assert keys_consistent_right_in_left(set("ab"), set("abc")) is False
-    assert keys_consistent_right_in_left(set("abc"), set("ac")) is True
+    assert set_keys_consistent_right_in_left(abc, abc) is True
+    assert set_keys_consistent_right_in_left(ab, abc) is False
+    assert set_keys_consistent_right_in_left(abc, ac) is True
 
-    assert keys_consistent_right_in_left(set("abcd"), set("abce")) is False
-    assert keys_consistent_right_in_left(set("abd"), set("abce")) is False
-    assert keys_consistent_right_in_left(set("abcd"), set("abe")) is False
+    assert set_keys_consistent_right_in_left(abcd, abce) is False
+    assert set_keys_consistent_right_in_left(abd, abce) is False
+    assert set_keys_consistent_right_in_left(abcd, abe) is False
+    assert set_keys_consistent_right_in_left(empty, abc) is False
+    assert set_keys_consistent_right_in_left(abc, empty) is True
+
+
+def test_zip_match_keys_to_set_key():
+    ab = tuple("ab")
+    abc = tuple("abc")
+    abce = tuple("abce")
+    abcd = tuple("abcd")
+    abd = tuple("abd")
+    abe = tuple("abe")
+    ac = tuple("ac")
+    empty = tuple()
+
+    assert list(
+        zip_match_keys_to_set_key(
+            [ab, abc, abce, abcd, abd, abe, ac, empty],
+            abc,
+            set(abc),
+            keys_consistent_fcn=set_keys_consistent_symmetric,
+        )
+    ) == [(ab, abc), (abc, abc), (abce, abc), (abcd, abc), (ac, abc), (empty, abc)]
+
+    assert list(
+        zip_match_keys_to_set_key(
+            [ab, abc, abce, abcd, abd, abe, ac, empty],
+            abc,
+            set(abc),
+            keys_consistent_fcn=set_keys_consistent_left_in_right,
+        )
+    ) == [(ab, abc), (abc, abc), (ac, abc), (empty, abc)]
+
+
+    assert list(
+        zip_match_keys_to_set_key(
+            [ab, abc, abce, abcd, abd, abe, ac, empty],
+            abc,
+            set(abc),
+            keys_consistent_fcn=set_keys_consistent_right_in_left,
+        )
+    ) == [(abc, abc), (abce, abc), (abcd, abc)]
 
 
 def test_match():
@@ -63,19 +117,19 @@ def test_match():
     print(right_extra)
 
     print("left, right")
-    match_keys((left,), right, print, fcn_skip=print_skip)
+    match_keys((left,), right, print, fcn_on_skip=print_skip)
     print()
 
     print("left+(), right")
-    match_keys((left, ((),)), right, print, fcn_skip=print_skip)
+    match_keys((left, ((),)), right, print, fcn_on_skip=print_skip)
     print()
 
     print("left+left, right")
-    match_keys((left, left), right, print, fcn_skip=print_skip)
+    match_keys((left, left), right, print, fcn_on_skip=print_skip)
     print()
 
     print("left+right, right")
-    match_keys((left, right), right, print, fcn_skip=print_skip)
+    match_keys((left, right), right, print, fcn_on_skip=print_skip)
     print()
 
     print("left extra, right extra")
@@ -85,7 +139,7 @@ def test_match():
         print,
         require_all_left_keys_processed=False,
         require_all_right_keys_processed=False,
-        fcn_skip=print_skip,
+        fcn_on_skip=print_skip,
     )
     print()
 
@@ -96,7 +150,7 @@ def test_match():
         print,
         require_all_left_keys_processed=False,
         require_all_right_keys_processed=False,
-        fcn_skip=print_skip,
+        fcn_on_skip=print_skip,
     )
     print()
 
