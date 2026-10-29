@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.11.1] - 2026-10-01
+## [0.12.1] - 2026-10-01
 
 - fix: update check between of left-handed keys and indices in right-handed keys in `match_keys_to_key`
 - refactor: update code of `match_keys_to_key`
