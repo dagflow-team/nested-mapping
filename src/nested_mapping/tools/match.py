@@ -96,10 +96,10 @@ def match_keys_to_key(
     return right_key_accepted
 
 
-def zip_match_keys_to_set_key(
+def zip_match_keys_to_key(
     keys_left: Sequence[KeyLike],
     key_right_tuple: TupleKey,
-    key_right_set: set,
+    key_right_set: set | OrderedSet,
     keys_consistent_fcn: Callable[[set | OrderedSet, set | OrderedSet], bool],
 ):
     for key_left in keys_left:
@@ -108,6 +108,21 @@ def zip_match_keys_to_set_key(
         if keys_consistent_fcn(key_left_set, key_right_set):
             yield key_left_tuple, key_right_tuple
 
+def zip_match_keys_to_keys(
+    keys_left: Sequence[KeyLike],
+    keys_right: Sequence[KeyLike],
+    keys_consistent_fcn: Callable[[set | OrderedSet, set | OrderedSet], bool],
+):
+    for key_right in keys_right:
+        key_right_tuple = properkey(key_right)
+        key_right_set = OrderedSet(key_right_tuple)
+
+        yield from zip_match_keys_to_key(
+            keys_left,
+            key_right_tuple,
+            key_right_set,
+            keys_consistent_fcn
+        )
 
 def match_keys(
     keys_left_seq: Sequence[Sequence[KeyLike]],

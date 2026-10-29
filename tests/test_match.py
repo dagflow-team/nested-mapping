@@ -8,7 +8,8 @@ from nested_mapping.tools.match import (
     set_keys_consistent_left_in_right,
     set_keys_consistent_right_in_left,
     set_keys_consistent_symmetric,
-    zip_match_keys_to_set_key,
+    zip_match_keys_to_key,
+    zip_match_keys_to_keys,
 )
 
 
@@ -64,7 +65,7 @@ def test_zip_match_keys_to_set_key():
     empty = tuple()
 
     assert list(
-        zip_match_keys_to_set_key(
+        zip_match_keys_to_key(
             [ab, abc, abce, abcd, abd, abe, ac, empty],
             abc,
             set(abc),
@@ -73,7 +74,7 @@ def test_zip_match_keys_to_set_key():
     ) == [(ab, abc), (abc, abc), (abce, abc), (abcd, abc), (ac, abc), (empty, abc)]
 
     assert list(
-        zip_match_keys_to_set_key(
+        zip_match_keys_to_key(
             [ab, abc, abce, abcd, abd, abe, ac, empty],
             abc,
             set(abc),
@@ -82,7 +83,7 @@ def test_zip_match_keys_to_set_key():
     ) == [(ab, abc), (abc, abc), (ac, abc), (empty, abc)]
 
     assert list(
-        zip_match_keys_to_set_key(
+        zip_match_keys_to_key(
             [ab, abc, abce, abcd, abd, abe, ac, empty],
             abc,
             set(abc),
@@ -90,14 +91,80 @@ def test_zip_match_keys_to_set_key():
         )
     ) == [(abc, abc), (abce, abc), (abcd, abc)]
 
+    assert (
+        list(
+            zip_match_keys_to_key(
+                [ab, abc, abce, abcd, abd, abe, ac],
+                x,
+                set(x),
+                keys_consistent_fcn=set_keys_consistent_symmetric,
+            )
+        )
+        == []
+    )
+
+
+def test_zip_match_keys_to_keys():
+    ab = tuple("ab")
+    abc = tuple("abc")
+    abce = tuple("abce")
+    abcd = tuple("abcd")
+    abd = tuple("abd")
+    abe = tuple("abe")
+    ac = tuple("ac")
+    x = tuple("x")
+    empty = tuple()
+
     assert list(
-        zip_match_keys_to_set_key(
-            [ab, abc, abce, abcd, abd, abe, ac],
-            x,
-            set(x),
+        zip_match_keys_to_keys(
+            [ab, abc, abce, abcd, abd, abe, ac, empty],
+            [abc, abd, x],
             keys_consistent_fcn=set_keys_consistent_symmetric,
         )
-    ) == []
+    ) == [
+        (ab, abc),
+        (abc, abc),
+        (abce, abc),
+        (abcd, abc),
+        (ac, abc),
+        (empty, abc),
+        (ab, abd),
+        (abcd, abd),
+        (abd, abd),
+        (empty, abd),
+        (empty, x),
+    ]
+
+    assert list(
+        zip_match_keys_to_keys(
+            [ab, abc, abce, abcd, abd, abe, ac, empty],
+            [abc, abd, x],
+            keys_consistent_fcn=set_keys_consistent_left_in_right,
+        )
+    ) == [
+        (ab, abc),
+        (abc, abc),
+        (ac, abc),
+        (empty, abc),
+        (ab, abd),
+        (abd, abd),
+        (empty, abd),
+        (empty, x),
+    ]
+
+    assert list(
+        zip_match_keys_to_keys(
+            [ab, abc, abce, abcd, abd, abe, ac, empty],
+            [abc, abd, x],
+            keys_consistent_fcn=set_keys_consistent_right_in_left,
+        )
+    ) == [
+        (abc, abc),
+        (abce, abc),
+        (abcd, abc),
+        (abcd, abd),
+        (abd, abd),
+    ]
 
 
 def test_match_keys_to_set_key():
@@ -161,7 +228,7 @@ def test_match_keys_to_set_key():
         set(abc),
         set_keys_consistent_symmetric,
     )
-    assert right_accepted==True
+    assert right_accepted == True
     assert accepted == [(ab, abc), (abc, abc), (abce, abc), (abcd, abc), (ac, abc), (empty, abc)]
     assert rejected == [(abd, abc), (abe, abc)]
     assert rejected_left_keys == {abd, abe}
@@ -183,7 +250,7 @@ def test_match_keys_to_set_key():
         set(abc),
         set_keys_consistent_left_in_right,
     )
-    assert right_accepted==True
+    assert right_accepted == True
     assert accepted == [(ab, abc), (abc, abc), (ac, abc), (empty, abc)]
     assert rejected == [(abce, abc), (abcd, abc), (abd, abc), (abe, abc)]
     assert rejected_left_keys == {abd, abce, abcd, abe}
@@ -205,7 +272,7 @@ def test_match_keys_to_set_key():
         set(abc),
         set_keys_consistent_right_in_left,
     )
-    assert right_accepted==True
+    assert right_accepted == True
     assert accepted == [(abc, abc), (abce, abc), (abcd, abc)]
     assert rejected == [(ab, abc), (abd, abc), (abe, abc), (ac, abc), (empty, abc)]
     assert rejected_left_keys == {ab, abd, abe, ac, empty}
@@ -227,7 +294,7 @@ def test_match_keys_to_set_key():
         set(x),
         set_keys_consistent_symmetric,
     )
-    assert right_accepted==False
+    assert right_accepted == False
     assert accepted == []
     assert rejected == [(ab, x), (abc, x), (abce, x), (abcd, x), (abd, x), (abe, x), (ac, x)]
     assert rejected_left_keys == {ab, abc, abce, abcd, abd, abe, ac}
