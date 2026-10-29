@@ -3,6 +3,37 @@ from itertools import product
 from pytest import raises
 
 from nested_mapping.tools import match_keys
+from nested_mapping.tools.match import (
+    keys_consistent_left_in_right,
+    keys_consistent_right_in_left,
+    keys_consistent_symmetric,
+)
+
+
+def test_keys_consistent():
+    assert keys_consistent_symmetric(set("abc"), set("abc")) is True
+    assert keys_consistent_symmetric(set("ab"), set("abc")) is True
+    assert keys_consistent_symmetric(set("abc"), set("ac")) is True
+
+    assert keys_consistent_symmetric(set("abcd"), set("abce")) is False
+    assert keys_consistent_symmetric(set("abd"), set("abce")) is False
+    assert keys_consistent_symmetric(set("abcd"), set("abe")) is False
+
+    assert keys_consistent_left_in_right(set("abc"), set("abc")) is True
+    assert keys_consistent_left_in_right(set("ab"), set("abc")) is True
+    assert keys_consistent_left_in_right(set("abc"), set("ac")) is False
+
+    assert keys_consistent_left_in_right(set("abcd"), set("abce")) is False
+    assert keys_consistent_left_in_right(set("abd"), set("abce")) is False
+    assert keys_consistent_left_in_right(set("abcd"), set("abe")) is False
+
+    assert keys_consistent_right_in_left(set("abc"), set("abc")) is True
+    assert keys_consistent_right_in_left(set("ab"), set("abc")) is False
+    assert keys_consistent_right_in_left(set("abc"), set("ac")) is True
+
+    assert keys_consistent_right_in_left(set("abcd"), set("abce")) is False
+    assert keys_consistent_right_in_left(set("abd"), set("abce")) is False
+    assert keys_consistent_right_in_left(set("abcd"), set("abe")) is False
 
 
 def test_match():
@@ -74,6 +105,7 @@ def test_match():
 
     print()
 
+
 def test_match_partial():
     i1 = ("1", "2", "3")
     i2 = ("A", "B", "C")
@@ -85,10 +117,13 @@ def test_match_partial():
 
     def print_before(*args):
         print(f"befr", *args)
+
     def print_after(*args):
         print(f"aftr", *args)
+
     def print_skip(i, key_left, key_right):
         print("skip", f"{i} {key_left} {key_right}")
+
     def print_proc(i, key_left, key_right):
         print(f"proc {i} {key_left} {key_right}")
 
@@ -122,7 +157,7 @@ def test_match_partial():
         (left1, left2, left3),
         right,
         print_proc,
-        require_all_left_keys_match_right=False
+        require_all_left_keys_match_right=False,
         # fcn_outer_before=print_before,
         # fcn_outer_after=print_after,
         # fcn_skip=print_skip

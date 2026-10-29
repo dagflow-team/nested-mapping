@@ -11,6 +11,15 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Sequence
 
 
+def keys_consistent_symmetric(left: set, right: set) -> bool:
+    return left.issubset(right) or right.issubset(left)
+
+def keys_consistent_left_in_right(left: set, right: set) -> bool:
+    return left.issubset(right)
+
+def keys_consistent_right_in_left(left: set, right: set) -> bool:
+    return right.issubset(left)
+
 def match_keys(
     keys_left_seq: Sequence[Sequence[KeyLike]],
     keys_right: Iterable[KeyLike],
@@ -32,19 +41,11 @@ def match_keys(
         raise RuntimeError("Left sequence is empty")
 
     if left_in_right and right_in_left:
-
-        def keys_consistent(left: set, right: set) -> bool:
-            return left.issubset(right) or right.issubset(left)
-
+        keys_consistent = keys_consistent_symmetric
     elif left_in_right:
-
-        def keys_consistent(left: set, right: set) -> bool:
-            return left.issubset(right)
-
+        keys_consistent = keys_consistent_left_in_right
     elif right_in_left:
-
-        def keys_consistent(left: set, right: set) -> bool:
-            return right.issubset(left)
+        keys_consistent = keys_consistent_right_in_left
 
     else:
         raise RuntimeError(
