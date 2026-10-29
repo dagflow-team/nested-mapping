@@ -43,6 +43,7 @@ def match_keys_to_key(
     accepted_left_keys: set | None = None,
     accepted_right_keys: set | None = None,
     rejected_right_keys: set | None = None,
+    require_no_duplicate_right_matches: bool = False,
 ) -> bool:
     assert not collect_rejected_right_keys or (
         accepted_right_keys is not None and rejected_right_keys is not None
@@ -51,6 +52,7 @@ def match_keys_to_key(
         accepted_left_keys is not None and rejected_left_keys is not None
     )
     right_key_accepted = False
+    key_left_match = None
     for key_left in keys_left:
         key_left_tuple = properkey(key_left)
         key_left_set = OrderedSet(key_left_tuple)
@@ -77,7 +79,14 @@ def match_keys_to_key(
             continue
 
         fcn(key_left_tuple, key_right_tuple)
+        if require_no_duplicate_right_matches and right_key_accepted:
+            raise ValueError(
+                f"match_keys: right key {key_right_tuple!s} was matched more than once to "
+                f"{key_left_match!s}; {key_left_tuple!s}..."
+            )
+
         right_key_accepted = True
+        key_left_match = key_left_tuple
 
         if collect_rejected_left_keys:
             with suppress(KeyError):
@@ -108,6 +117,7 @@ def zip_match_keys_to_key(
         if keys_consistent_fcn(key_left_set, key_right_set):
             yield key_left_tuple, key_right_tuple
 
+
 def zip_match_keys_to_keys(
     keys_left: Sequence[KeyLike],
     keys_right: Sequence[KeyLike],
@@ -118,11 +128,9 @@ def zip_match_keys_to_keys(
         key_right_set = OrderedSet(key_right_tuple)
 
         yield from zip_match_keys_to_key(
-            keys_left,
-            key_right_tuple,
-            key_right_set,
-            keys_consistent_fcn
+            keys_left, key_right_tuple, key_right_set, keys_consistent_fcn
         )
+
 
 def match_keys(
     keys_left_seq: Sequence[Sequence[KeyLike]],
@@ -137,6 +145,8 @@ def match_keys(
     require_all_right_keys_accepted: bool = True,
     require_all_left_keys_accepted: bool = True,
     require_all_left_keys_match_right: bool = True,
+    require_no_duplicate_right_matches: bool = False,
+    unmatched_right_keys_should_contain: Sequence[KeyLike] | None = None,
     skippable_left_keys_should_contain: Sequence[KeyLike] | None = None,
 ) -> None:
     if isinstance(keys_right, str):
@@ -163,9 +173,11 @@ def match_keys(
     accepted_right_keys_for_left = []
 
     collect_rejected_left_keys = bool(
-        require_all_left_keys_accepted or skippable_left_keys_should_contain
+        require_all_left_keys_accepted or skippable_left_keys_should_contain is not None
     )
-    collect_rejected_right_keys = require_all_left_keys_match_right
+    collect_rejected_right_keys = bool(
+        require_all_left_keys_match_right or unmatched_right_keys_should_contain is not None
+    )
 
     i_left = -1
     for key_right in keys_right:
@@ -190,14 +202,17 @@ def match_keys(
                 keys_consistent_fcn,
                 lambda *args: fcn(i_left, *args),
                 fcn_on_reject=(
-                    (lambda *args: fcn_on_reject(i_left, *args)) if fcn_on_reject is not None else None
+                    (lambda *args: fcn_on_reject(i_left, *args))
+                    if fcn_on_reject is not None
+                    else None
                 ),
-                collect_rejected_left_keys = collect_rejected_left_keys,
-                collect_rejected_right_keys = collect_rejected_right_keys,
+                collect_rejected_left_keys=collect_rejected_left_keys,
+                collect_rejected_right_keys=collect_rejected_right_keys,
                 rejected_left_keys=rejected_left_keys,
                 accepted_left_keys=accepted_left_keys,
                 rejected_right_keys=rejected_right_keys_i,
                 accepted_right_keys=accepted_right_keys_i,
+                require_no_duplicate_right_matches=require_no_duplicate_right_matches,
             )
 
         if fcn_outer_after is not None:
@@ -209,42 +224,51 @@ def match_keys(
         elif require_all_right_keys_accepted:
             rejected_right_keys.append(key_right_tuple)
 
-    if require_all_left_keys_match_right:
-        for i, (skipped_left_keys_i, processed_left_keys_i) in enumerate(
-            zip(rejected_right_keys_for_left, accepted_right_keys_for_left)
-        ):
-            if processed_left_keys_i != accepted_right_keys:
+    for i, (rejected_left_keys_i, processed_left_keys_i) in enumerate(
+        zip(rejected_right_keys_for_left, accepted_right_keys_for_left)
+    ):
+        if processed_left_keys_i != accepted_right_keys:
+            if require_all_left_keys_match_right:
                 raise ValueError(
-                    f"match_keys: left sequence {i} did not provide keys {skipped_left_keys_i!s}"
+                    f"match_keys: left sequence {i} did not provide keys {rejected_left_keys_i!s}"
                 )
+            _check_for_unexpectedly_rejected_keys(
+                rejected_left_keys_i,
+                unmatched_right_keys_should_contain,
+                kind=f"missing left ({i})",
+            )
 
     if rejected_left_keys:
         if require_all_left_keys_accepted:
-            raise ValueError(
-                f"match_keys: there were unprocessed left keys {rejected_left_keys!s}"
-            )
-        failure, incorrectly_skipped_key = _check_skipped_keys_incorrect(
-            rejected_left_keys, skippable_left_keys_should_contain
+            raise ValueError(f"match_keys: there were unprocessed left keys {rejected_left_keys!s}")
+        _check_for_unexpectedly_rejected_keys(
+            rejected_left_keys, unmatched_right_keys_should_contain, kind="rejected left"
         )
-        if failure:
-            raise ValueError(
-                f"match_keys: there were unprocessed left keys {rejected_left_keys!s}. "
-                f"{incorrectly_skipped_key} should not have been skipped."
-            )
 
     if require_all_right_keys_accepted and rejected_right_keys:
         raise ValueError(f"match_keys: there were unprocessed right keys {rejected_right_keys!s}")
 
 
-def _check_skipped_keys_incorrect(
-    skipped_keys: Sequence[Key] | set[Key], should_contain: Sequence[KeyLike] | None
-) -> tuple[bool, Key | None]:
+def _check_for_unexpectedly_rejected_keys(
+    rejected_keys: Sequence[Key] | set[Key], should_contain: Sequence[KeyLike] | None, kind: str
+):
+    if unexpectedly_rejected_keys := _get_unexpectedly_rejected_keys(rejected_keys, should_contain):
+        raise ValueError(
+            f"match_keys: there were {kind} keys {rejected_keys!s}. "
+            f"{unexpectedly_rejected_keys} should not have been rejected."
+        )
+
+
+def _get_unexpectedly_rejected_keys(
+    rejected_keys: Sequence[Key] | set[Key], should_contain: Sequence[KeyLike] | None
+) -> Sequence[Key]:
     if not should_contain:
-        return False, None
+        return []
 
     setkeys = tuple(setkey(keypart) for keypart in should_contain)
-    for skipped_key in skipped_keys:
-        if not any(setkey.issubset(skipped_key) for setkey in setkeys):
-            return True, skipped_key
+    incorrectly_rejected_keys = []
+    for rejected_key in rejected_keys:
+        if not any(setkey.issubset(rejected_key) for setkey in setkeys):
+            incorrectly_rejected_keys.append(rejected_key)
 
-    return False, None
+    return incorrectly_rejected_keys
