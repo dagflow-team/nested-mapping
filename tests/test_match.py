@@ -179,49 +179,49 @@ def test_match_keys_to_key():
     empty = tuple()
 
     def call_match(left, right, tright, cmp, **kwargs):
-        accepted, rejected = [], []
-        rejected_left_keys, accepted_left_keys = set(), set()
-        rejected_right_keys, accepted_right_keys = set(), set()
+        processed, skipped = [], []
+        skipped_left_keys, processed_left_keys = set(), set()
+        skipped_right_keys, processed_right_keys = set(), set()
 
         def fcn_take(left, right):
-            accepted.append((left, right))
+            processed.append((left, right))
 
         def fcn_reject(left, right):
-            rejected.append((left, right))
+            skipped.append((left, right))
 
-        right_accepted = match_keys_to_key(
+        right_processed = match_keys_to_key(
             left,
             right,
             tright,
             cmp,
             fcn_take,
             fcn_on_reject=fcn_reject,
-            collect_rejected_left_keys=True,
-            collect_rejected_right_keys=True,
-            rejected_left_keys=rejected_left_keys,
-            rejected_right_keys=rejected_right_keys,
-            accepted_left_keys=accepted_left_keys,
-            accepted_right_keys=accepted_right_keys,
+            collect_skipped_left_keys=True,
+            collect_skipped_right_keys=True,
+            skipped_left_keys=skipped_left_keys,
+            skipped_right_keys=skipped_right_keys,
+            processed_left_keys=processed_left_keys,
+            processed_right_keys=processed_right_keys,
             **kwargs,
         )
 
         return (
-            right_accepted,
-            accepted,
-            rejected,
-            rejected_left_keys,
-            accepted_left_keys,
-            rejected_right_keys,
-            accepted_right_keys,
+            right_processed,
+            processed,
+            skipped,
+            skipped_left_keys,
+            processed_left_keys,
+            skipped_right_keys,
+            processed_right_keys,
         )
 
     (
-        right_accepted,
-        accepted,
-        rejected,
-        rejected_left_keys,
+        right_processed,
+        processed,
+        skipped,
+        skipped_left_keys,
         processed_left_keys,
-        rejected_right_keys,
+        skipped_right_keys,
         processed_right_keys,
     ) = call_match(
         [ab, abc, abce, abcd, abd, abe, ac, empty],
@@ -229,21 +229,21 @@ def test_match_keys_to_key():
         set(abc),
         set_keys_consistent_symmetric,
     )
-    assert right_accepted == True
-    assert accepted == [(ab, abc), (abc, abc), (abce, abc), (abcd, abc), (ac, abc), (empty, abc)]
-    assert rejected == [(abd, abc), (abe, abc)]
-    assert rejected_left_keys == {abd, abe}
+    assert right_processed == True
+    assert processed == [(ab, abc), (abc, abc), (abce, abc), (abcd, abc), (ac, abc), (empty, abc)]
+    assert skipped == [(abd, abc), (abe, abc)]
+    assert skipped_left_keys == {abd, abe}
     assert processed_left_keys == {ab, abc, abce, abcd, ac, empty}
-    assert rejected_right_keys == set()
+    assert skipped_right_keys == set()
     assert processed_right_keys == {abc}
 
     (
-        right_accepted,
-        accepted,
-        rejected,
-        rejected_left_keys,
+        right_processed,
+        processed,
+        skipped,
+        skipped_left_keys,
         processed_left_keys,
-        rejected_right_keys,
+        skipped_right_keys,
         processed_right_keys,
     ) = call_match(
         [ab, abc, abce, abcd, abd, abe, ac, empty],
@@ -251,21 +251,21 @@ def test_match_keys_to_key():
         set(abc),
         set_keys_consistent_left_in_right,
     )
-    assert right_accepted == True
-    assert accepted == [(ab, abc), (abc, abc), (ac, abc), (empty, abc)]
-    assert rejected == [(abce, abc), (abcd, abc), (abd, abc), (abe, abc)]
-    assert rejected_left_keys == {abd, abce, abcd, abe}
+    assert right_processed == True
+    assert processed == [(ab, abc), (abc, abc), (ac, abc), (empty, abc)]
+    assert skipped == [(abce, abc), (abcd, abc), (abd, abc), (abe, abc)]
+    assert skipped_left_keys == {abd, abce, abcd, abe}
     assert processed_left_keys == {ab, abc, ac, empty}
-    assert rejected_right_keys == set()
+    assert skipped_right_keys == set()
     assert processed_right_keys == {abc}
 
     (
-        right_accepted,
-        accepted,
-        rejected,
-        rejected_left_keys,
+        right_processed,
+        processed,
+        skipped,
+        skipped_left_keys,
         processed_left_keys,
-        rejected_right_keys,
+        skipped_right_keys,
         processed_right_keys,
     ) = call_match(
         [ab, abc, abce, abcd, abd, abe, ac, empty],
@@ -273,21 +273,21 @@ def test_match_keys_to_key():
         set(abc),
         set_keys_consistent_right_in_left,
     )
-    assert right_accepted == True
-    assert accepted == [(abc, abc), (abce, abc), (abcd, abc)]
-    assert rejected == [(ab, abc), (abd, abc), (abe, abc), (ac, abc), (empty, abc)]
-    assert rejected_left_keys == {ab, abd, abe, ac, empty}
+    assert right_processed == True
+    assert processed == [(abc, abc), (abce, abc), (abcd, abc)]
+    assert skipped == [(ab, abc), (abd, abc), (abe, abc), (ac, abc), (empty, abc)]
+    assert skipped_left_keys == {ab, abd, abe, ac, empty}
     assert processed_left_keys == {abc, abce, abcd}
-    assert rejected_right_keys == set()
+    assert skipped_right_keys == set()
     assert processed_right_keys == {abc}
 
     (
-        right_accepted,
-        accepted,
-        rejected,
-        rejected_left_keys,
+        right_processed,
+        processed,
+        skipped,
+        skipped_left_keys,
         processed_left_keys,
-        rejected_right_keys,
+        skipped_right_keys,
         processed_right_keys,
     ) = call_match(
         [ab, abc, abce, abcd, abd, abe, ac],
@@ -295,22 +295,22 @@ def test_match_keys_to_key():
         set(x),
         set_keys_consistent_symmetric,
     )
-    assert right_accepted == False
-    assert accepted == []
-    assert rejected == [(ab, x), (abc, x), (abce, x), (abcd, x), (abd, x), (abe, x), (ac, x)]
-    assert rejected_left_keys == {ab, abc, abce, abcd, abd, abe, ac}
+    assert right_processed == False
+    assert processed == []
+    assert skipped == [(ab, x), (abc, x), (abce, x), (abcd, x), (abd, x), (abe, x), (ac, x)]
+    assert skipped_left_keys == {ab, abc, abce, abcd, abd, abe, ac}
     assert processed_left_keys == set()
-    assert rejected_right_keys == {x}
+    assert skipped_right_keys == {x}
     assert processed_right_keys == set()
 
     with raises(ValueError):
         (
-            right_accepted,
-            accepted,
-            rejected,
-            rejected_left_keys,
+            right_processed,
+            processed,
+            skipped,
+            skipped_left_keys,
             processed_left_keys,
-            rejected_right_keys,
+            skipped_right_keys,
             processed_right_keys,
         ) = call_match(
             [ab, abc, abc, abce, abcd, abd, abe, ac, empty],
@@ -333,29 +333,29 @@ def test_match_0():
     empty = tuple()
 
     def call_match(lefts, right, **kwargs):
-        accepted, rejected = [], []
+        processed, skipped = [], []
 
         def fcn_take(i, left, right):
-            accepted.append((i, left, right))
+            processed.append((i, left, right))
 
         def fcn_reject(i, left, right):
-            rejected.append((i, left, right))
+            skipped.append((i, left, right))
 
         match_keys(lefts, right, fcn_take, fcn_on_reject=fcn_reject, **kwargs)
 
-        return (accepted, rejected)
+        return (processed, skipped)
 
     (
-        accepted,
-        rejected,
+        processed,
+        skipped,
     ) = call_match(
         [[ab, abc, abce, abcd, abd, abe, ac, empty]],
         [abc, abd],
         left_in_right=True,
         right_in_left=True,
-        require_all_left_keys_accepted=False,
+        require_all_left_keys_processed=False,
     )
-    assert accepted == [
+    assert processed == [
         (0, ab, abc),
         (0, abc, abc),
         (0, abce, abc),
@@ -367,7 +367,7 @@ def test_match_0():
         (0, abd, abd),
         (0, empty, abd),
     ]
-    assert rejected == [
+    assert skipped == [
         (0, abd, abc),
         (0, abe, abc),
         (0, abc, abd),
@@ -377,16 +377,16 @@ def test_match_0():
     ]
 
     (
-        accepted,
-        rejected,
+        processed,
+        skipped,
     ) = call_match(
         [[ab, abc, abce, abcd], [abd, abe, ac, empty]],
         [abc, abd],
         left_in_right=True,
         right_in_left=True,
-        require_all_left_keys_accepted=False,
+        require_all_left_keys_processed=False,
     )
-    assert accepted == [
+    assert processed == [
         (0, ab, abc),
         (0, abc, abc),
         (0, abce, abc),
@@ -398,7 +398,7 @@ def test_match_0():
         (1, abd, abd),
         (1, empty, abd),
     ]
-    assert rejected == [
+    assert skipped == [
         (1, abd, abc),
         (1, abe, abc),
         (0, abc, abd),
@@ -430,29 +430,29 @@ def test_match_1():
     empty = tuple()
 
     def call_match(lefts, right, **kwargs):
-        accepted, rejected = [], []
+        processed, skipped = [], []
 
         def fcn_take(i, left, right):
-            accepted.append((i, left, right))
+            processed.append((i, left, right))
 
         def fcn_reject(i, left, right):
-            rejected.append((i, left, right))
+            skipped.append((i, left, right))
 
         match_keys(lefts, right, fcn_take, fcn_on_reject=fcn_reject, **kwargs)
 
-        return (accepted, rejected)
+        return (processed, skipped)
 
     (
-        accepted,
-        rejected,
+        processed,
+        skipped,
     ) = call_match(
         [[a, b], [a1, b1, a2, b2], [ax, bx, ay, by]],
         [a1x, a2x, b1x, b2x, a1y, a2y, b1y, b2y],
         left_in_right=True,
         right_in_left=False,
-        require_all_left_keys_accepted=True,
+        require_all_left_keys_processed=True,
     )
-    assert accepted == [
+    assert processed == [
         (0, a, a1x),
         (1, a1, a1x),
         (2, ax, a1x),
@@ -482,31 +482,31 @@ def test_match_1():
     # Missing left a2 and b2
     with raises(ValueError):
         (
-            accepted,
-            rejected,
+            processed,
+            skipped,
         ) = call_match(
             [[a, b], [a1, b1], [ax, bx, ay, by]],
             [a1x, a2x, b1x, b2x, a1y, a2y, b1y, b2y],
             left_in_right=True,
             right_in_left=False,
-            require_all_left_keys_accepted=True,
-            require_all_right_keys_accepted=True,
+            require_all_left_keys_processed=True,
+            require_all_right_keys_processed=True,
             require_all_left_keys_match_right=True,
         )
 
     (
-        accepted,
-        rejected,
+        processed,
+        skipped,
     ) = call_match(
         [[a, b], [a1, b1], [ax, bx, ay, by]],
         [a1x, a2x, b1x, b2x, a1y, a2y, b1y, b2y],
         left_in_right=True,
         right_in_left=False,
-        require_all_left_keys_accepted=True,
-        require_all_right_keys_accepted=True,
+        require_all_left_keys_processed=True,
+        require_all_right_keys_processed=True,
         require_all_left_keys_match_right=False,
     )
-    assert accepted == [
+    assert processed == [
         (0, a, a1x),
         (1, a1, a1x),
         (2, ax, a1x),
@@ -534,19 +534,19 @@ def test_match_1():
     ]
 
     (
-        accepted,
-        rejected,
+        processed,
+        skipped,
     ) = call_match(
         [[a, b], [a1, b1], [ax, bx, ay, by]],
         [a1x, a2x, b1x, b2x, a1y, a2y, b1y, b2y],
         left_in_right=True,
         right_in_left=False,
-        require_all_left_keys_accepted=True,
-        require_all_right_keys_accepted=True,
+        require_all_left_keys_processed=True,
+        require_all_right_keys_processed=True,
         require_all_left_keys_match_right=False,
         unmatched_right_keys_should_contain=[("2",)]
     )
-    assert accepted == [
+    assert processed == [
         (0, a, a1x),
         (1, a1, a1x),
         (2, ax, a1x),
@@ -575,32 +575,32 @@ def test_match_1():
 
     with raises(ValueError):
         (
-            accepted,
-            rejected,
+            processed,
+            skipped,
         ) = call_match(
             [[a, b], [a1, b1], [ax, bx, ay, by]],
             [a1x, a2x, b1x, b2x, a1y, a2y, b1y, b2y],
             left_in_right=True,
             right_in_left=False,
-            require_all_left_keys_accepted=True,
-            require_all_right_keys_accepted=True,
+            require_all_left_keys_processed=True,
+            require_all_right_keys_processed=True,
             require_all_left_keys_match_right=False,
             unmatched_right_keys_should_contain=[("2", "a")]
         )
     (
-        accepted,
-        rejected,
+        processed,
+        skipped,
     ) = call_match(
         [[a, b], [a1, b1], [ax, bx, ay, by]],
         [a1x, a2x, b1x, b2x, a1y, a2y, b1y, b2y],
         left_in_right=True,
         right_in_left=False,
-        require_all_left_keys_accepted=True,
-        require_all_right_keys_accepted=True,
+        require_all_left_keys_processed=True,
+        require_all_right_keys_processed=True,
         require_all_left_keys_match_right=False,
         unmatched_right_keys_should_contain=[("2", "a"), ("b", "2")]
     )
-    assert accepted == [
+    assert processed == [
         (0, a, a1x),
         (1, a1, a1x),
         (2, ax, a1x),
@@ -675,8 +675,8 @@ def test_match_stub():
         (left_extra,),
         right_extra,
         print,
-        require_all_left_keys_accepted=False,
-        require_all_right_keys_accepted=False,
+        require_all_left_keys_processed=False,
+        require_all_right_keys_processed=False,
         fcn_on_reject=print_skip,
     )
     print()
@@ -686,8 +686,8 @@ def test_match_stub():
         (left,),
         right_extra,
         print,
-        require_all_left_keys_accepted=False,
-        require_all_right_keys_accepted=False,
+        require_all_left_keys_processed=False,
+        require_all_right_keys_processed=False,
         fcn_on_reject=print_skip,
     )
     print()
