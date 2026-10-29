@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.11.1] - 2026-10-01
 
-- fix: update check between left-handed indices and right-handed indices 
+- fix: update check between of left-handed keys and indices in right-handed keys in `match_keys_to_key`
+- refactor: update code of `match_keys_to_key`
 
 ## [0.12.0] - 2026-10-01
 
